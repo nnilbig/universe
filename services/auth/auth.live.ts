@@ -122,7 +122,28 @@ export const authServiceLive: AuthService = {
       await liff.init({ liffId: config.public.liffId })
       liffInitialized = true
     }
-    await syncFromSupabaseSession()
+
+    if (!liff.isLoggedIn()) {
+      setSession({ profile: null, isAuthenticated: false, isGuestSession: true })
+      return
+    }
+
+    const supabase = getSupabaseClient()
+    const { data } = await supabase.auth.getSession()
+    if (data.session) {
+      await syncFromSupabaseSession()
+      return
+    }
+
+    // liff.login() already completed — most likely we just landed back from its redirect — but
+    // the Supabase half of the bridge hasn't run yet. Finish it now instead of leaving the user
+    // stuck in a logged-out-looking state until they tap the login button a second time.
+    try {
+      await loginAndSync()
+    } catch (err) {
+      console.error('[auth.live] failed to complete deferred LINE login', err)
+      setSession({ profile: null, isAuthenticated: false, isGuestSession: true })
+    }
   },
   getSession() {
     return session
