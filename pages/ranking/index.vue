@@ -14,17 +14,32 @@ interface RankingTable {
 }
 
 // Hardcoded for now — replace with real per-season table standings once available.
-const tables: RankingTable[] = [
-  { no: 1, members: ['喬', 'TonyH', '韶恩'] },
-  { no: 2, members: ['Bat', '祈翰', '俞民'] },
-  { no: 3, members: ['扯翔', '學承', 'eden'] },
-  { no: 4, members: ['儒', '承', '容'] }
-]
+const tablesBySeason: Record<string, RankingTable[]> = {
+  '2026': [
+    { no: 1, members: ['喬', 'TonyH', '韶恩'] },
+    { no: 2, members: ['Bat', '祈翰', '俞民'] },
+    { no: 3, members: ['扯翔', '學承', 'eden'] },
+    { no: 4, members: ['儒', '承', '容'] }
+  ],
+  '2025': [
+    { no: 1, members: ['Ting', '喬', '儒', '扯翔'] },
+    { no: 2, members: ['霞', '孟', '小健', '覺深'] },
+    { no: 3, members: ['嘉偉', 'eden', '承', '雞佛'] },
+    { no: 4, members: ['博', '安', '容', '祈翰'] }
+  ],
+  '2024': [
+    { no: 1, members: ['博', '安', '承'] },
+    { no: 2, members: ['家緯', '扯翔', '咖咖'] },
+    { no: 3, members: ['eden', '祈翰', '儒'] },
+    { no: 4, members: ['孟翰', '嘉偉', '雞佛'] }
+  ]
+}
 
 const selectedSeason = ref('2026')
+const tables = computed(() => tablesBySeason[selectedSeason.value] ?? [])
 
 const openTableNo = ref<number | null>(null)
-const openTable = computed(() => tables.find((t) => t.no === openTableNo.value) ?? null)
+const openTable = computed(() => tables.value.find((t) => t.no === openTableNo.value) ?? null)
 const tableSheetOpen = computed({
   get: () => openTableNo.value !== null,
   set: (val: boolean) => {
@@ -81,7 +96,7 @@ function medalColor(no: number) {
       </div>
     </section>
 
-    <p class="text-xs text-titanium/40">排名資料為示意內容，正式賽制上線後將顯示即時排名。</p>
+    <p class="text-xs text-titanium/40">歷屆賽事排行榜。</p>
 
     <UiSheet v-model:open="tableSheetOpen" :title="openTable ? `No.${openTable.no} 桌次成員` : undefined">
       <div v-if="openTable" class="flex flex-col gap-3">

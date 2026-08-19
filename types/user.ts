@@ -7,6 +7,8 @@ export interface Profile {
   avatarUrl?: string
   /** Account identity. 'captain'/'admin' unlock the edit-mode toggle; defaults to 'player'. */
   role: ProfileRole
+  /** Stored balance (NT$), account-linked — 0 for a freshly created profile. */
+  walletBalance: number
   createdAt: string
 }
 

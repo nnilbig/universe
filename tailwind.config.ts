@@ -32,11 +32,11 @@ export default <Partial<Config>>{
         }
       },
       fontFamily: {
-        // One family for both body and headings (weight does the differentiating), matching
-        // Airbnb's Cereal typeface — Nunito Sans is the closest open-license equivalent
-        // (warm, rounded-geometric, humanist), unlike Cereal itself which isn't licensed for embedding.
-        sans: ['Nunito Sans', 'ui-sans-serif', 'system-ui', 'sans-serif'],
-        display: ['Nunito Sans', 'ui-sans-serif', 'system-ui', 'sans-serif']
+        // Inter first for Latin glyphs (weight does the differentiating between body/headings);
+        // Noto Sans TC covers the CJK glyphs Inter doesn't have — the browser falls through to it
+        // per-character, so mixed zh/en text renders each script in its own font automatically.
+        sans: ['Inter', 'Noto Sans TC', 'ui-sans-serif', 'system-ui', 'sans-serif'],
+        display: ['Inter', 'Noto Sans TC', 'ui-sans-serif', 'system-ui', 'sans-serif']
       },
       backgroundImage: {
         'gold-gradient': 'linear-gradient(135deg, #9C7B2E, #E4C97A, #9C7B2E)',

@@ -53,7 +53,10 @@ export default defineNuxtConfig({
   },
 
   fonts: {
-    families: [{ name: 'Nunito Sans', provider: 'google', weights: [400, 500, 600, 700, 800] }]
+    families: [
+      { name: 'Inter', provider: 'google', weights: [400, 500, 600, 700, 800] },
+      { name: 'Noto Sans TC', provider: 'google', weights: [400, 500, 600, 700, 800] }
+    ]
   },
 
   pwa: {

@@ -6,7 +6,8 @@ import { mapProfileRow, cacheProfiles, type ProfileRow } from '~/lib/profileCach
 
 // Backing table: profiles (id uuid primary key references auth.users(id) on delete cascade,
 // line_user_id text unique not null, display_name text not null, avatar_url text, role text
-// not null default 'player', created_at timestamptz not null default now()).
+// not null default 'player', wallet_balance integer not null default 0,
+// created_at timestamptz not null default now()).
 // RLS: users may select/insert/update only the row where id = auth.uid().
 
 interface LineLoginResponse {

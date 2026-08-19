@@ -8,6 +8,7 @@ export interface ProfileRow {
   display_name: string
   avatar_url: string | null
   role: ProfileRole
+  wallet_balance: number
   created_at: string
 }
 
@@ -18,6 +19,7 @@ export function mapProfileRow(row: ProfileRow): Profile {
     displayName: row.display_name,
     avatarUrl: row.avatar_url ?? undefined,
     role: row.role,
+    walletBalance: row.wallet_balance,
     createdAt: row.created_at
   }
 }

@@ -102,5 +102,18 @@
     "organizerId": "profile-organizer-2",
     "capacity": 8,
     "status": "open"
+  },
+  {
+    "id": "activity-9",
+    "title": "WHONEXT 羽球交流",
+    "activityTypeId": "type-casual",
+    "sportTypeId": "sport-badminton",
+    "dayOffset": 9,
+    "startTime": "20:00",
+    "endTime": "22:00",
+    "location": "大墩大慶羽球館 4號場",
+    "organizerId": "profile-mock-line-user",
+    "capacity": 16,
+    "status": "open"
   }
 ]

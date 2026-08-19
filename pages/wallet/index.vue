@@ -37,7 +37,8 @@ onMounted(loadRedemptionCards)
 watch(profile, loadRedemptionCards)
 
 const PREVIEW_COUNT = 2
-const balance = 850
+// 0 for guests; once logged in, reads the account's own stored balance (profiles.wallet_balance).
+const balance = computed(() => profile.value?.walletBalance ?? 0)
 
 const topUpHistory = [
   { id: 't1', label: 'LINE Pay 儲值', amount: '+1,000', date: '2026-08-10' },
