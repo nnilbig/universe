@@ -1,0 +1,71 @@
+import { reactive } from 'vue'
+import { nanoid } from 'nanoid'
+import type { Activity, ActivityType, SportType, Registration, Profile } from '~/types'
+import activityTypesFixture from './fixtures/activity-types.json'
+import sportTypesFixture from './fixtures/sport-types.json'
+import activitiesFixture from './fixtures/activities.json'
+import registrationsFixture from './fixtures/registrations.json'
+import profilesFixture from './fixtures/profiles.json'
+
+interface ActivityFixture extends Omit<Activity, 'date' | 'createdAt'> {
+  dayOffset: number
+}
+
+function toIsoDate(dayOffset: number): string {
+  const d = new Date()
+  d.setDate(d.getDate() + dayOffset)
+  return d.toISOString().slice(0, 10)
+}
+
+// Fixture dates are day-offsets from "today" so 本週/本月 filters always have data to show,
+// regardless of when this mock is run.
+const seededActivities: Activity[] = (activitiesFixture as ActivityFixture[]).map((a) => ({
+  ...a,
+  date: toIsoDate(a.dayOffset),
+  createdAt: new Date().toISOString()
+}))
+
+export const activityTypesTable = reactive<ActivityType[]>([...(activityTypesFixture as ActivityType[])])
+export const sportTypesTable = reactive<SportType[]>([...(sportTypesFixture as SportType[])])
+export const activitiesTable = reactive<Activity[]>(seededActivities)
+export const profilesTable = reactive<Profile[]>([...(profilesFixture as Profile[])])
+// mock only — real impl must hash PINs (e.g. bcrypt) before persisting, never store plaintext.
+export const registrationsTable = reactive<Registration[]>([...(registrationsFixture as Registration[])])
+
+export function findActivityById(id: string): Activity | undefined {
+  return activitiesTable.find((a) => a.id === id)
+}
+
+export function listRegistrationsByActivity(activityId: string): Registration[] {
+  return registrationsTable.filter((r) => r.activityId === activityId)
+}
+
+export function findProfileById(id: string): Profile | undefined {
+  return profilesTable.find((p) => p.id === id)
+}
+
+export function insertRegistrations(regs: Registration[]): void {
+  registrationsTable.push(...regs)
+}
+
+export function removeRegistrationGroup(groupId: string): void {
+  const idxs = registrationsTable
+    .map((r, i) => (r.groupId === groupId ? i : -1))
+    .filter((i) => i !== -1)
+    .sort((a, b) => b - a)
+  for (const i of idxs) registrationsTable.splice(i, 1)
+}
+
+export function updateRegistrationAvatar(registrationId: string, avatarUrl: string): void {
+  const reg = registrationsTable.find((r) => r.id === registrationId)
+  if (reg) reg.avatarUrl = avatarUrl
+}
+
+export function updateRegistrationCheckedIn(registrationId: string, checkedIn: boolean): void {
+  const reg = registrationsTable.find((r) => r.id === registrationId)
+  if (reg) reg.checkedIn = checkedIn
+}
+
+export function generateId(prefix: string): string {
+  return `${prefix}-${nanoid(8)}`
+}

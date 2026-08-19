@@ -1,0 +1,8 @@
+[
+  { "id": "profile-organizer-1", "displayName": "阿翔教練", "avatarUrl": "", "role": "admin", "createdAt": "2026-01-10T00:00:00.000Z" },
+  { "id": "profile-organizer-2", "displayName": "小柔", "avatarUrl": "", "role": "captain", "createdAt": "2026-01-12T00:00:00.000Z" },
+  { "id": "profile-member-1", "displayName": "阿哲", "avatarUrl": "", "role": "player", "createdAt": "2026-02-01T00:00:00.000Z" },
+  { "id": "profile-member-2", "displayName": "小美", "avatarUrl": "", "role": "player", "createdAt": "2026-02-03T00:00:00.000Z" },
+  { "id": "profile-member-3", "displayName": "阿凱", "avatarUrl": "", "role": "player", "createdAt": "2026-02-05T00:00:00.000Z" },
+  { "id": "profile-mock-line-user", "lineUserId": "mock-line-user-id", "displayName": "測試玩家", "avatarUrl": "", "role": "captain", "createdAt": "2026-03-01T00:00:00.000Z" }
+]

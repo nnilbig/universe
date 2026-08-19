@@ -1,0 +1,5 @@
+[
+  { "id": "type-competition", "code": "competition", "labelZh": "賽事", "sortOrder": 1 },
+  { "id": "type-casual", "code": "casual", "labelZh": "交流", "sortOrder": 2 },
+  { "id": "type-project", "code": "project", "labelZh": "企劃", "sortOrder": 3 }
+]

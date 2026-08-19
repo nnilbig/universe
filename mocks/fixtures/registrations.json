@@ -1,0 +1,65 @@
+[
+  {
+    "id": "reg-1",
+    "activityId": "activity-1",
+    "kind": "line",
+    "groupId": "grp-1",
+    "profileId": "profile-member-1",
+    "avatarUrl": "",
+    "checkedIn": true,
+    "createdAt": "2026-08-15T10:00:00.000Z"
+  },
+  {
+    "id": "reg-2",
+    "activityId": "activity-1",
+    "kind": "guest",
+    "groupId": "grp-2",
+    "nickname": "小美",
+    "pinHash": "m49-50-51-52",
+    "avatarUrl": "",
+    "checkedIn": false,
+    "createdAt": "2026-08-15T11:00:00.000Z"
+  },
+  {
+    "id": "reg-3",
+    "activityId": "activity-2",
+    "kind": "line",
+    "groupId": "grp-3",
+    "profileId": "profile-member-2",
+    "avatarUrl": "",
+    "checkedIn": false,
+    "createdAt": "2026-08-16T09:00:00.000Z"
+  },
+  {
+    "id": "reg-4",
+    "activityId": "activity-4",
+    "kind": "guest",
+    "groupId": "grp-4",
+    "nickname": "阿凱",
+    "pinHash": "m53-54-55-56",
+    "avatarUrl": "",
+    "checkedIn": false,
+    "createdAt": "2026-08-14T08:00:00.000Z"
+  },
+  {
+    "id": "reg-5",
+    "activityId": "activity-4",
+    "kind": "guest",
+    "groupId": "grp-4",
+    "nickname": "阿哲",
+    "pinHash": "m53-54-55-56",
+    "avatarUrl": "",
+    "checkedIn": false,
+    "createdAt": "2026-08-14T08:00:00.000Z"
+  },
+  {
+    "id": "reg-6",
+    "activityId": "activity-6",
+    "kind": "line",
+    "groupId": "grp-5",
+    "profileId": "profile-member-3",
+    "avatarUrl": "",
+    "checkedIn": false,
+    "createdAt": "2026-08-17T13:00:00.000Z"
+  }
+]

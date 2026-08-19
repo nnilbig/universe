@@ -1,0 +1,6 @@
+[
+  { "id": "sport-badminton", "code": "badminton", "labelZh": "羽球", "iconKey": "badminton", "sortOrder": 1 },
+  { "id": "sport-volleyball", "code": "volleyball", "labelZh": "排球", "iconKey": "volleyball", "sortOrder": 2 },
+  { "id": "sport-running", "code": "running", "labelZh": "跑步", "iconKey": "running", "sortOrder": 3 },
+  { "id": "sport-pickleball", "code": "pickleball", "labelZh": "匹克球", "iconKey": "pickleball", "sortOrder": 4 }
+]
