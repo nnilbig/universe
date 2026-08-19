@@ -5,8 +5,8 @@ const route = useRoute()
 
 const tabs = [
   { to: '/', label: '活動', icon: PhCalendarDot },
-  { to: '/personal', label: '個人', icon: PhUserCircle },
   { to: '/wallet', label: '錢包', icon: PhWallet },
+  { to: '/personal', label: '個人', icon: PhUserCircle },
   { to: '/ranking', label: '排行', icon: PhTrophy },
   { to: '/shop', label: '商城', icon: PhStorefront }
 ]
