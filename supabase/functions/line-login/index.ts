@@ -67,20 +67,19 @@ Deno.serve(async (req: Request) => {
 
   // Supabase Auth has no native LINE provider, so identity is bridged through a deterministic
   // pseudo-email tied to the LINE user id. generateLink() creates the auth user on first login;
-  // on later logins it just re-issues a redeemable token for the same user.
+  // on later logins it just re-issues a redeemable token for the same user. LINE profile info is
+  // passed via `data` right here, at creation time — a separate updateUserById() call *after*
+  // generateLink looked like the safer order (freshen the name/avatar every login) but mutating
+  // the user record between issuing the token and the client redeeming it made Supabase treat the
+  // just-issued token as already invalid by the time verifyOtp() ran.
   const email = `line-${claims.sub}@users.whonext.internal`
-  const { data: linkData, error: linkError } = await admin.auth.admin.generateLink({ type: 'magiclink', email })
+  const { data: linkData, error: linkError } = await admin.auth.admin.generateLink({
+    type: 'magiclink',
+    email,
+    options: { data: { line_sub: claims.sub, name: claims.name, picture: claims.picture } }
+  })
   if (linkError || !linkData) {
     return jsonResponse({ error: linkError?.message ?? 'generateLink failed' }, 500)
-  }
-
-  // Stamp fresh LINE profile info on every login rather than relying on generateLink's
-  // creation-time metadata, so display name/avatar changes on LINE's side stay in sync.
-  const { error: updateError } = await admin.auth.admin.updateUserById(linkData.user.id, {
-    user_metadata: { line_sub: claims.sub, name: claims.name, picture: claims.picture }
-  })
-  if (updateError) {
-    return jsonResponse({ error: updateError.message }, 500)
   }
 
   return jsonResponse({ email, hashedToken: linkData.properties.hashed_token })
