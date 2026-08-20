@@ -8,6 +8,7 @@ const uiStore = useUiStore()
 const { getById } = useActivities()
 const { myRegistration } = useRegistrations()
 const { profile, viewMode } = useAuth()
+const findProfile = useProfileLookup()
 
 const activity = ref<ActivityWithLookups | null>(null)
 const isLoading = ref(false)
@@ -38,6 +39,8 @@ watch(
   },
   { immediate: true }
 )
+
+const organizer = computed(() => (activity.value ? findProfile(activity.value.organizerId) : undefined))
 
 const currentRegistration = computed(() => {
   refreshTick.value
@@ -92,6 +95,10 @@ function onAvatarDone() {
           <MapPin class="h-3.5 w-3.5 shrink-0" />
           {{ activity.location }}
         </p>
+        <div class="flex items-center gap-1.5 pt-1">
+          <UiAvatar :src="organizer?.avatarUrl" :name="organizer?.displayName" size="xs" />
+          <span class="text-xs text-titanium/50">發起人・{{ organizer?.displayName }}</span>
+        </div>
       </div>
 
       <div>
