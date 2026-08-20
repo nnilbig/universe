@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { PlusCircle } from 'lucide-vue-next'
 
-const { weekly, monthly } = useActivities()
+const { weekly, upcoming } = useActivities()
 const { canToggleViewMode } = useAuth()
 </script>
 
@@ -17,7 +17,7 @@ const { canToggleViewMode } = useAuth()
     </NuxtLink>
     <ActivityTypeFilter />
     <ActivitySection label="本週活動" :activities="weekly" />
-    <ActivitySection label="本月活動" :activities="monthly" />
+    <ActivitySection label="即將到來的活動" :activities="upcoming" />
     <ActivityDetailSheet />
   </div>
 </template>

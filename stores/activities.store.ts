@@ -5,7 +5,7 @@ import type { ActivityWithLookups } from '~/services/activities/activities.types
 export const useActivitiesStore = defineStore('activities', {
   state: () => ({
     weekly: [] as ActivityWithLookups[],
-    monthly: [] as ActivityWithLookups[],
+    upcoming: [] as ActivityWithLookups[],
     activityTypes: [] as ActivityType[],
     sportTypes: [] as SportType[],
     isLoading: false
@@ -18,8 +18,8 @@ export const useActivitiesStore = defineStore('activities', {
     setWeekly(list: ActivityWithLookups[]) {
       this.weekly = list
     },
-    setMonthly(list: ActivityWithLookups[]) {
-      this.monthly = list
+    setUpcoming(list: ActivityWithLookups[]) {
+      this.upcoming = list
     },
     setLoading(loading: boolean) {
       this.isLoading = loading

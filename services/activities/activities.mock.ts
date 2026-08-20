@@ -44,13 +44,13 @@ export const activitiesServiceMock: ActivityService = {
       .sort((a, b) => a.date.localeCompare(b.date))
     return bySportType(list, sportTypeCode)
   },
-  async getMonthly(sportTypeCode) {
+  async getUpcoming(sportTypeCode) {
     await delay()
     const list = activitiesTable
       .map(withLookups)
       .filter((a) => {
         const offset = daysFromToday(a.date)
-        return offset > 6 && offset <= 30
+        return offset > 6 && offset <= 27
       })
       .sort((a, b) => a.date.localeCompare(b.date))
     return bySportType(list, sportTypeCode)

@@ -9,7 +9,7 @@ export function useSplash() {
   const store = useUiStore()
   const { isSplashLoading, splashProgress: progress } = storeToRefs(store)
 
-  // Each step is a real boot task (auth init, lookups, weekly/monthly fetch, ...) — progress
+  // Each step is a real boot task (auth init, lookups, weekly/upcoming fetch, ...) — progress
   // advances only when a step actually completes, so it reflects real work, not a fake animation.
   // This also means the same loop naturally reflects real LIFF/Supabase latency once useAuth's
   // live implementation is wired in — no changes needed here.

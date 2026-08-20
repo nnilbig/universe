@@ -11,7 +11,7 @@ function resolveActivityService(): ActivityService {
 export function useActivities() {
   const service = resolveActivityService()
   const store = useActivitiesStore()
-  const { weekly, monthly, activityTypes, sportTypes, isLoading } = storeToRefs(store)
+  const { weekly, upcoming, activityTypes, sportTypes, isLoading } = storeToRefs(store)
 
   async function loadLookups() {
     const { activityTypes, sportTypes } = await service.listTypes()
@@ -22,14 +22,14 @@ export function useActivities() {
     store.setWeekly(await service.getWeekly(sportTypeCode))
   }
 
-  async function loadMonthly(sportTypeCode?: string) {
-    store.setMonthly(await service.getMonthly(sportTypeCode))
+  async function loadUpcoming(sportTypeCode?: string) {
+    store.setUpcoming(await service.getUpcoming(sportTypeCode))
   }
 
   async function loadFeed(sportTypeCode?: string) {
     store.setLoading(true)
     try {
-      await Promise.all([loadLookups(), loadWeekly(sportTypeCode), loadMonthly(sportTypeCode)])
+      await Promise.all([loadLookups(), loadWeekly(sportTypeCode), loadUpcoming(sportTypeCode)])
     } finally {
       store.setLoading(false)
     }
@@ -41,19 +41,19 @@ export function useActivities() {
 
   async function createActivity(input: Parameters<ActivityService['createActivity']>[0], organizerId: string) {
     const activity = await service.createActivity(input, organizerId)
-    await Promise.all([loadWeekly(), loadMonthly()])
+    await Promise.all([loadWeekly(), loadUpcoming()])
     return activity
   }
 
   return {
     weekly,
-    monthly,
+    upcoming,
     activityTypes,
     sportTypes,
     isLoading,
     loadLookups,
     loadWeekly,
-    loadMonthly,
+    loadUpcoming,
     loadFeed,
     getById,
     createActivity

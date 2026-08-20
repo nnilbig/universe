@@ -104,7 +104,7 @@ function isoDate(d: Date): string {
 }
 
 // startOffsetDays/endOffsetDays mirror activities.mock.ts's daysFromToday filters: weekly is
-// today..+6, monthly is +7..+30.
+// today..+6, upcoming is +7..+27 (rest of a rolling 4-week window).
 async function getRange(
   startOffsetDays: number,
   endOffsetDays: number,
@@ -139,8 +139,8 @@ export const activitiesServiceLive: ActivityService = {
   getWeekly(sportTypeCode) {
     return getRange(0, 6, sportTypeCode)
   },
-  getMonthly(sportTypeCode) {
-    return getRange(7, 30, sportTypeCode)
+  getUpcoming(sportTypeCode) {
+    return getRange(7, 27, sportTypeCode)
   },
   async getById(id) {
     const supabase = getSupabaseClient()
