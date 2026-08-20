@@ -20,6 +20,6 @@ const product = { id: 'p1', name: 'WHONEXT 隊服 - 黑', price: 880, soldOut: t
         <p class="text-xs text-gold-light">${{ product.price.toLocaleString() }}</p>
       </div>
     </div>
-    <p class="text-xs text-titanium/40">商城功能即將推出，敬請期待更多商品。</p>
+    <p class="text-xs text-titanium/40">敬請期待更多商品。</p>
   </div>
 </template>
