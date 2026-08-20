@@ -121,12 +121,13 @@ async function doLoginAndSync(): Promise<Profile> {
     if (fnError) throw fnError
     if (!fnData) throw new Error('line-login returned no data')
 
-    // type must match what generateLink() was called with server-side ('magiclink') — verifyOtp
-    // looks up the stored token by (email, type), so a mismatched type here always reads back as
-    // "expired or invalid" even though the token itself is fine.
+    // generateLink()'s `hashed_token` is a token HASH — the auth-js `{ email, token, type }` verify
+    // form expects `token` to be the plaintext OTP (what gets emailed to users), a completely
+    // different value. Pairing a hash with that form can never match and always reads back as
+    // "expired or invalid" no matter how fresh the link is. The hash has its own verify form:
+    // `{ token_hash, type }`, no email needed.
     const { error: otpError } = await supabase.auth.verifyOtp({
-      email: fnData.email,
-      token: fnData.hashedToken,
+      token_hash: fnData.hashedToken,
       type: 'magiclink'
     })
     if (otpError) throw otpError
