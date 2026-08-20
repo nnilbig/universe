@@ -46,13 +46,6 @@ const tableSheetOpen = computed({
     if (!val) openTableNo.value = null
   }
 })
-
-function medalColor(no: number) {
-  if (no === 1) return 'text-gold-light'
-  if (no === 2) return 'text-titanium-light'
-  if (no === 3) return 'text-gold-dark'
-  return 'text-titanium/50'
-}
 </script>
 
 <template>
@@ -87,7 +80,6 @@ function medalColor(no: number) {
           class="flex items-center gap-3 px-4 py-3 text-left transition-colors active:bg-obsidian-700"
           @click="openTableNo = t.no"
         >
-          <span :class="['w-12 shrink-0 font-display text-sm font-bold', medalColor(t.no)]">No.{{ t.no }}</span>
           <div class="flex -space-x-2">
             <UiAvatar v-for="m in t.members" :key="m" :name="m" size="sm" ringed />
           </div>
@@ -98,7 +90,7 @@ function medalColor(no: number) {
 
     <p class="text-xs text-titanium/40">歷屆賽事排行榜。</p>
 
-    <UiSheet v-model:open="tableSheetOpen" :title="openTable ? `No.${openTable.no} 桌次成員` : undefined">
+    <UiSheet v-model:open="tableSheetOpen" title="成員">
       <div v-if="openTable" class="flex flex-col gap-3">
         <div
           v-for="m in openTable.members"
