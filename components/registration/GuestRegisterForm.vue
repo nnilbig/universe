@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref, computed } from 'vue'
+import { ref, computed, onMounted } from 'vue'
 
 const props = defineProps<{ activityId: string }>()
 const emit = defineEmits<{ submitting: []; registered: [registrationIds: string[]]; back: [] }>()
@@ -14,6 +14,34 @@ const error = ref('')
 const isSubmitting = ref(false)
 
 const { registerAsGuest } = useRegistrations()
+
+// Browser auto-session — remembers the guest's own nickname/PIN across visits (this device only)
+// so returning guests don't have to retype either one. Only ever pre-fills member #1; additional
+// group members in a multi-person registration still start blank.
+const GUEST_IDENTITY_KEY = 'whonext:guest-identity'
+
+interface GuestIdentity {
+  nickname: string
+  pin: string
+}
+
+function loadGuestIdentity(): GuestIdentity | null {
+  if (import.meta.server) return null
+  const raw = localStorage.getItem(GUEST_IDENTITY_KEY)
+  return raw ? (JSON.parse(raw) as GuestIdentity) : null
+}
+
+function saveGuestIdentity(identity: GuestIdentity) {
+  if (import.meta.server) return
+  localStorage.setItem(GUEST_IDENTITY_KEY, JSON.stringify(identity))
+}
+
+onMounted(() => {
+  const saved = loadGuestIdentity()
+  if (!saved) return
+  nicknames.value[0] = saved.nickname
+  pin.value = saved.pin
+})
 
 function setGroupSize(n: number) {
   groupSize.value = n
@@ -51,6 +79,7 @@ async function submit() {
       pin: pin.value,
       members: nicknames.value.map((nickname) => ({ nickname: nickname.trim() }))
     })
+    saveGuestIdentity({ nickname: nicknames.value[0].trim(), pin: pin.value })
     emit(
       'registered',
       registrations.map((r) => r.id)
