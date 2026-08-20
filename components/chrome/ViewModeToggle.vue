@@ -1,25 +1,43 @@
 <script setup lang="ts">
-import { ShieldCheck } from 'lucide-vue-next'
 import { cn } from '~/lib/utils'
 
 const { viewMode, canToggleViewMode, toggleViewMode } = useAuth()
+
+// Only two states exist, so switching to the inactive segment is always just a toggle.
+function selectMode(mode: 'player' | 'edit') {
+  if (mode !== viewMode.value) toggleViewMode()
+}
 </script>
 
 <template>
-  <button
+  <div
     v-if="canToggleViewMode"
-    type="button"
-    :class="
-      cn(
-        'flex items-center gap-1 rounded-full border px-2.5 py-1 text-[11px] font-medium transition-colors',
-        viewMode === 'edit'
-          ? 'border-gold/60 bg-gold/10 text-gold-light'
-          : 'border-titanium/20 text-titanium/60 hover:border-titanium/40'
-      )
-    "
-    @click="toggleViewMode"
+    class="flex items-center rounded-full border border-titanium/20 bg-obsidian-800 p-0.5 text-[11px] font-medium"
   >
-    <ShieldCheck class="h-3.5 w-3.5" />
-    {{ viewMode === 'edit' ? '編輯模式' : '切換身分' }}
-  </button>
+    <button
+      type="button"
+      :class="
+        cn(
+          'rounded-full px-2.5 py-1 transition-colors',
+          viewMode === 'player' ? 'bg-titanium/15 text-titanium-light' : 'text-titanium/50 hover:text-titanium/70'
+        )
+      "
+      @click="selectMode('player')"
+    >
+      球員
+    </button>
+    <button
+      type="button"
+      :class="
+        cn(
+          'rounded-full px-2.5 py-1 transition-colors',
+          viewMode === 'edit' ? 'bg-gold/15 text-gold-light' : 'text-titanium/50 hover:text-titanium/70'
+        )
+      "
+      @click="selectMode('edit')"
+    >
+      管理員
+    </button>
+  </div>
+  <UiBadge v-else variant="neutral">球員</UiBadge>
 </template>
