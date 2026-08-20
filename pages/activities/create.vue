@@ -28,6 +28,24 @@ watch(startTime, () => {
   if (endTime.value && endTime.value <= startTime.value) endTime.value = ''
 })
 
+function nearestFridayIso(): string {
+  const d = new Date()
+  d.setHours(0, 0, 0, 0)
+  d.setDate(d.getDate() + ((5 - d.getDay() + 7) % 7))
+  return d.toISOString().slice(0, 10)
+}
+
+function applyBadmintonPreset() {
+  title.value = 'WHONEXT 羽球交流'
+  activityTypeId.value = activityTypes.value.find((t) => t.code === 'casual')?.id ?? activityTypeId.value
+  sportTypeId.value = sportTypes.value.find((s) => s.code === 'badminton')?.id ?? sportTypeId.value
+  date.value = nearestFridayIso()
+  startTime.value = '20:00'
+  endTime.value = '22:00'
+  location.value = '大墩大慶羽球館 4號場地'
+  capacity.value = '16'
+}
+
 const isValid = computed(
   () =>
     title.value.trim() &&
@@ -88,7 +106,16 @@ async function submit() {
 
       <div class="flex flex-col gap-4">
         <div class="flex flex-col gap-1.5">
-          <label class="text-xs text-titanium/50">標題</label>
+          <div class="flex items-center justify-between">
+            <label class="text-xs text-titanium/50">標題</label>
+            <button
+              type="button"
+              class="rounded-full border border-gold/40 px-3 py-1 text-[11px] font-medium text-gold-light transition-colors hover:bg-gold/10"
+              @click="applyBadmintonPreset"
+            >
+              預設羽球
+            </button>
+          </div>
           <UiInput v-model="title" placeholder="活動標題" />
         </div>
 
