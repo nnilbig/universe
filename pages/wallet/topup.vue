@@ -9,7 +9,14 @@ const { listMembers, applyTopUps } = useWallet()
 const members = ref<Profile[]>([])
 const isLoading = ref(true)
 const loadError = ref<string | null>(null)
-const listOpen = ref(false)
+
+// Expanded by default — members are already sorted subscriber-first (see wallet.mock/live's
+// ROLE_PRIORITY), so the preview naturally surfaces them first. Only once the roster is longer
+// than one screenful does a "顯示更多" toggle appear, matching the pattern used elsewhere on the
+// wallet page (儲值紀錄/扣款紀錄 previews).
+const PREVIEW_COUNT = 6
+const showAll = ref(false)
+const visibleMembers = computed(() => (showAll.value ? members.value : members.value.slice(0, PREVIEW_COUNT)))
 
 interface Draft {
   method: TopUpMethod
@@ -73,51 +80,54 @@ async function submit() {
       <p v-else-if="loadError" class="text-xs text-red-300">{{ loadError }}</p>
 
       <template v-else>
-        <button
-          type="button"
-          class="metallic-border flex items-center justify-between bg-obsidian-800 px-4 py-3 text-sm text-titanium-light"
-          @click="listOpen = !listOpen"
-        >
-          <span>玩家名單（{{ members.length }}）</span>
-          <ChevronDown class="h-4 w-4 text-titanium/40 transition-transform" :class="listOpen && 'rotate-180'" />
-        </button>
+        <p v-if="!members.length" class="py-6 text-center text-xs text-titanium/40">目前沒有成員資料。</p>
 
-        <p v-if="listOpen && !members.length" class="py-6 text-center text-xs text-titanium/40">目前沒有成員資料。</p>
-
-        <div v-else-if="listOpen" class="metallic-border flex flex-col divide-y divide-titanium/10 bg-obsidian-800">
-          <div v-for="m in members" :key="m.id" class="flex flex-wrap items-center gap-2 px-4 py-3">
-            <UiAvatar :name="m.displayName" size="sm" />
-            <div class="min-w-0 flex-1">
-              <p class="truncate text-sm text-titanium-light">{{ m.displayName }}</p>
-              <p class="text-[11px] text-titanium/40">
-                {{ roleLabel[m.role] ?? m.role }} · 餘額 ${{ m.walletBalance.toLocaleString() }}
-              </p>
+        <template v-else>
+          <div class="metallic-border flex flex-col divide-y divide-titanium/10 bg-obsidian-800">
+            <div v-for="m in visibleMembers" :key="m.id" class="flex flex-wrap items-center gap-2 px-4 py-3">
+              <UiAvatar :name="m.displayName" size="sm" />
+              <div class="min-w-0 flex-1">
+                <p class="truncate text-sm text-titanium-light">{{ m.displayName }}</p>
+                <p class="text-[11px] text-titanium/40">
+                  {{ roleLabel[m.role] ?? m.role }} · 餘額 ${{ m.walletBalance.toLocaleString() }}
+                </p>
+              </div>
+              <div class="flex shrink-0 gap-1.5">
+                <button
+                  v-for="opt in (['linepay', 'cash'] as const)"
+                  :key="opt"
+                  type="button"
+                  :class="[
+                    'rounded-full border px-2.5 py-1 text-[11px] font-medium transition-colors',
+                    drafts[m.id]?.method === opt
+                      ? 'border-gold/60 bg-gold/10 text-gold-light'
+                      : 'border-titanium/20 text-titanium/60 hover:border-titanium/40'
+                  ]"
+                  @click="drafts[m.id].method = opt"
+                >
+                  {{ opt === 'linepay' ? 'LINE Pay' : '現金' }}
+                </button>
+              </div>
+              <UiInput
+                v-model="drafts[m.id].amount"
+                type="number"
+                inputmode="numeric"
+                placeholder="金額"
+                class="w-20 shrink-0 text-right"
+              />
             </div>
-            <div class="flex shrink-0 gap-1.5">
-              <button
-                v-for="opt in (['linepay', 'cash'] as const)"
-                :key="opt"
-                type="button"
-                :class="[
-                  'rounded-full border px-2.5 py-1 text-[11px] font-medium transition-colors',
-                  drafts[m.id]?.method === opt
-                    ? 'border-gold/60 bg-gold/10 text-gold-light'
-                    : 'border-titanium/20 text-titanium/60 hover:border-titanium/40'
-                ]"
-                @click="drafts[m.id].method = opt"
-              >
-                {{ opt === 'linepay' ? 'LINE Pay' : '現金' }}
-              </button>
-            </div>
-            <UiInput
-              v-model="drafts[m.id].amount"
-              type="number"
-              inputmode="numeric"
-              placeholder="金額"
-              class="w-20 shrink-0 text-right"
-            />
           </div>
-        </div>
+
+          <button
+            v-if="members.length > PREVIEW_COUNT"
+            type="button"
+            class="flex items-center justify-center gap-1 py-1 text-xs text-titanium/50 transition-colors hover:text-titanium-light"
+            @click="showAll = !showAll"
+          >
+            {{ showAll ? '收合' : `顯示更多（${members.length - PREVIEW_COUNT}）` }}
+            <ChevronDown class="h-3.5 w-3.5 transition-transform" :class="showAll && 'rotate-180'" />
+          </button>
+        </template>
       </template>
 
       <p v-if="submitError" class="text-xs text-red-300">{{ submitError }}</p>
