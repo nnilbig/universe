@@ -11,13 +11,19 @@ type Mode = 'options' | 'guest'
 const mode = ref<Mode>('options')
 const showConsent = ref(false)
 
-const { bindLineAccount } = useAuth()
+const { isAuthenticated, bindLineAccount } = useAuth()
 const { registerWithLine } = useRegistrations()
 
 async function onConsentConfirmed() {
   showConsent.value = false
   emit('registering')
   await bindLineAccount()
+  const reg = await registerWithLine(props.activityId)
+  emit('registered', [reg.id])
+}
+
+async function onDirectRegister() {
+  emit('registering')
   const reg = await registerWithLine(props.activityId)
   emit('registered', [reg.id])
 }
@@ -32,7 +38,10 @@ function onGuestRegistered(registrationIds: string[]) {
 </script>
 
 <template>
-  <div v-if="mode === 'options'" class="flex flex-col gap-3">
+  <div v-if="mode === 'options' && isAuthenticated" class="flex flex-col gap-3">
+    <UiButton variant="primary" size="lg" @click="onDirectRegister">我要報名</UiButton>
+  </div>
+  <div v-else-if="mode === 'options'" class="flex flex-col gap-3">
     <UiButton variant="primary" size="lg" @click="showConsent = true">快速登入報名</UiButton>
     <UiButton variant="outline" size="lg" @click="mode = 'guest'">訪客報名</UiButton>
   </div>
