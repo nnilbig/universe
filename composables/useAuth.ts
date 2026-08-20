@@ -11,7 +11,7 @@ function resolveAuthService(): AuthService {
 export function useAuth() {
   const service = resolveAuthService()
   const store = useAuthStore()
-  const { profile, isAuthenticated, isGuestSession, viewMode, canToggleViewMode } = storeToRefs(store)
+  const { profile, isAuthenticated, isGuestSession, viewMode, canToggleViewMode, isOwner } = storeToRefs(store)
 
   async function init() {
     await service.init()
@@ -42,6 +42,7 @@ export function useAuth() {
     isGuestSession,
     viewMode,
     canToggleViewMode,
+    isOwner,
     init,
     loginWithLine,
     bindLineAccount,

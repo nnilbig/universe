@@ -14,7 +14,11 @@ export const useAuthStore = defineStore('auth', {
     viewMode: 'player'
   }),
   getters: {
-    canToggleViewMode: (state) => state.profile?.role === 'captain' || state.profile?.role === 'admin'
+    // Host activities, manually add/remove registrants, check in attendees, manage wallet
+    // balances — everything admin/owner share.
+    canToggleViewMode: (state) => state.profile?.role === 'admin' || state.profile?.role === 'owner',
+    // Owner-only: assigning the 'admin' role to other accounts.
+    isOwner: (state) => state.profile?.role === 'owner'
   },
   actions: {
     setSession(session: AuthUser) {

@@ -12,7 +12,7 @@ import { cacheProfileRows, type ProfileRow } from '~/lib/profileCache'
 //   cancel_guest_registration(p_registration_id uuid, p_pin text) returns void  -- raises on mismatch
 // RLS: everyone may select; a LINE registrant may insert/delete/update only their own row
 // (profile_id = auth.uid()); checked_in updates additionally require the caller to be the
-// activity's organizer (or role captain/admin) — enforce that in the policy, not client-side.
+// activity's organizer (or role admin/owner) — enforce that in the policy, not client-side.
 interface RegistrationRow {
   id: string
   activity_id: string
