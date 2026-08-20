@@ -200,7 +200,9 @@ create or replace function public.register_guest(p_activity_id uuid, p_pin text,
 returns setof public.registrations
 language plpgsql
 security definer
-set search_path = public
+-- pgcrypto's gen_salt()/crypt() live in the extensions schema on Supabase (not public), so it
+-- must be on the path even though everything else this function touches is public.
+set search_path = public, extensions
 as $$
 declare
   v_group_id uuid := gen_random_uuid();
@@ -229,7 +231,9 @@ create or replace function public.cancel_guest_registration(p_registration_id uu
 returns void
 language plpgsql
 security definer
-set search_path = public
+-- pgcrypto's gen_salt()/crypt() live in the extensions schema on Supabase (not public), so it
+-- must be on the path even though everything else this function touches is public.
+set search_path = public, extensions
 as $$
 declare
   v_group_id uuid;
