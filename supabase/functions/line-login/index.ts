@@ -56,11 +56,14 @@ Deno.serve(async (req: Request) => {
     body: new URLSearchParams({ id_token: idToken, client_id: channelId })
   })
   if (!verifyRes.ok) {
-    return jsonResponse({ error: 'LINE ID token verification failed' }, 401)
+    const detail = await verifyRes.text()
+    console.error('LINE verify endpoint rejected the token', verifyRes.status, detail)
+    return jsonResponse({ error: 'LINE ID token verification failed', detail }, 401)
   }
   const claims = (await verifyRes.json()) as LineIdTokenClaims
   if (claims.aud !== channelId) {
-    return jsonResponse({ error: 'token audience mismatch' }, 401)
+    console.error('token audience mismatch', { aud: claims.aud, channelId })
+    return jsonResponse({ error: 'token audience mismatch', aud: claims.aud }, 401)
   }
 
   const admin = createClient(Deno.env.get('SUPABASE_URL')!, Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!)
@@ -79,8 +82,10 @@ Deno.serve(async (req: Request) => {
     options: { data: { line_sub: claims.sub, name: claims.name, picture: claims.picture } }
   })
   if (linkError || !linkData) {
+    console.error('generateLink failed', linkError)
     return jsonResponse({ error: linkError?.message ?? 'generateLink failed' }, 500)
   }
 
+  console.log('line-login succeeded', { email, sub: claims.sub })
   return jsonResponse({ email, hashedToken: linkData.properties.hashed_token })
 })
