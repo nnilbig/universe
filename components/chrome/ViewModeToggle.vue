@@ -10,16 +10,15 @@ function selectMode(mode: 'player' | 'edit') {
 </script>
 
 <template>
-  <div
-    v-if="canToggleViewMode"
-    class="flex items-center rounded-full border border-titanium/20 bg-obsidian-800 p-0.5 text-[11px] font-medium"
-  >
+  <div v-if="canToggleViewMode" class="flex items-center gap-1.5 text-[11px] font-medium">
     <button
       type="button"
       :class="
         cn(
-          'rounded-full px-2.5 py-1 transition-colors',
-          viewMode === 'player' ? 'bg-titanium/15 text-titanium-light' : 'text-titanium/50 hover:text-titanium/70'
+          'rounded-full border px-2.5 py-1 transition-colors',
+          viewMode === 'player'
+            ? 'border-titanium/40 bg-obsidian-800 text-titanium-light'
+            : 'border-titanium/15 text-titanium/50 hover:border-titanium/30 hover:text-titanium/70'
         )
       "
       @click="selectMode('player')"
@@ -30,8 +29,10 @@ function selectMode(mode: 'player' | 'edit') {
       type="button"
       :class="
         cn(
-          'rounded-full px-2.5 py-1 transition-colors',
-          viewMode === 'edit' ? 'bg-gold/15 text-gold-light' : 'text-titanium/50 hover:text-titanium/70'
+          'rounded-full border px-2.5 py-1 transition-colors',
+          viewMode === 'edit'
+            ? 'border-gold/60 bg-gold/10 text-gold-light'
+            : 'border-titanium/15 text-titanium/50 hover:border-titanium/30 hover:text-titanium/70'
         )
       "
       @click="selectMode('edit')"
