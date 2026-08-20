@@ -26,6 +26,7 @@ export interface Activity {
   location: string
   organizerId: string
   capacity: number
+  fee: number
   status: ActivityStatus
   posterUrl?: string
   createdAt: string

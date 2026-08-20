@@ -39,6 +39,12 @@ export function useActivities() {
     return service.getById(id)
   }
 
+  async function createActivity(input: Parameters<ActivityService['createActivity']>[0], organizerId: string) {
+    const activity = await service.createActivity(input, organizerId)
+    await Promise.all([loadWeekly(), loadMonthly()])
+    return activity
+  }
+
   return {
     weekly,
     monthly,
@@ -49,6 +55,7 @@ export function useActivities() {
     loadWeekly,
     loadMonthly,
     loadFeed,
-    getById
+    getById,
+    createActivity
   }
 }

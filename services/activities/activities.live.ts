@@ -1,4 +1,4 @@
-import type { ActivityService, ActivityWithLookups } from './activities.types'
+import type { ActivityService, ActivityWithLookups, CreateActivityInput } from './activities.types'
 import type { Activity, ActivityType, SportType } from '~/types'
 import { getSupabaseClient } from '~/lib/supabase'
 
@@ -6,7 +6,7 @@ import { getSupabaseClient } from '~/lib/supabase'
 //   activity_types(id, code, label_zh, sort_order)
 //   sport_types(id, code, icon_key, label_zh, sort_order)
 //   activities(id, title, activity_type_id, sport_type_id, date, start_time, end_time, location,
-//              organizer_id, capacity, status, poster_url, created_at)
+//              organizer_id, capacity, fee, status, poster_url, created_at)
 // activity_types/sport_types are near-static reference data, so they're fetched once and cached
 // for the lifetime of the app rather than re-queried on every listTypes()/getWeekly() call.
 
@@ -34,6 +34,7 @@ interface ActivityRow {
   location: string
   organizer_id: string
   capacity: number
+  fee: number
   status: Activity['status']
   poster_url: string | null
   created_at: string
@@ -57,6 +58,7 @@ function mapActivity(row: ActivityRow): Activity {
     location: row.location,
     organizerId: row.organizer_id,
     capacity: row.capacity,
+    fee: row.fee,
     status: row.status,
     posterUrl: row.poster_url ?? undefined,
     createdAt: row.created_at
@@ -145,5 +147,27 @@ export const activitiesServiceLive: ActivityService = {
     const { data, error } = await supabase.from('activities').select('*').eq('id', id).maybeSingle()
     if (error) throw error
     return data ? withLookups(data as ActivityRow) : undefined
+  },
+  async createActivity(input: CreateActivityInput, organizerId: string) {
+    const supabase = getSupabaseClient()
+    const { data, error } = await supabase
+      .from('activities')
+      .insert({
+        title: input.title,
+        activity_type_id: input.activityTypeId,
+        sport_type_id: input.sportTypeId,
+        date: input.date,
+        start_time: input.startTime,
+        end_time: input.endTime ?? null,
+        location: input.location,
+        organizer_id: organizerId,
+        capacity: input.capacity,
+        fee: input.fee,
+        status: 'open'
+      })
+      .select('*')
+      .single()
+    if (error) throw error
+    return withLookups(data as ActivityRow)
   }
 }

@@ -36,6 +36,10 @@ export function findActivityById(id: string): Activity | undefined {
   return activitiesTable.find((a) => a.id === id)
 }
 
+export function insertActivity(activity: Activity): void {
+  activitiesTable.push(activity)
+}
+
 export function listRegistrationsByActivity(activityId: string): Registration[] {
   return registrationsTable.filter((r) => r.activityId === activityId)
 }

@@ -8,6 +8,7 @@ const { listMembers, applyTopUps } = useWallet()
 
 const members = ref<Profile[]>([])
 const isLoading = ref(true)
+const loadError = ref<string | null>(null)
 const openId = ref<string | null>(null)
 
 interface Draft {
@@ -18,8 +19,11 @@ const drafts = reactive<Record<string, Draft>>({})
 
 async function load() {
   isLoading.value = true
+  loadError.value = null
   try {
     members.value = await listMembers()
+  } catch (err) {
+    loadError.value = err instanceof Error ? err.message : '成員清單載入失敗'
   } finally {
     isLoading.value = false
   }
@@ -71,6 +75,8 @@ async function submit() {
       <h2 class="font-display text-base font-semibold text-titanium-light">儲值管理</h2>
 
       <p v-if="isLoading" class="py-10 text-center text-sm text-titanium/50">載入中...</p>
+      <p v-else-if="loadError" class="text-xs text-red-300">{{ loadError }}</p>
+      <p v-else-if="!members.length" class="py-10 text-center text-sm text-titanium/50">目前沒有成員資料。</p>
 
       <div v-else class="metallic-border flex flex-col divide-y divide-titanium/10 bg-obsidian-800">
         <div v-for="m in members" :key="m.id" class="flex flex-col">

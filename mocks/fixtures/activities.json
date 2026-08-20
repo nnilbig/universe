@@ -10,7 +10,8 @@
     "location": "台北市羽球館 3 號場",
     "organizerId": "profile-mock-line-user",
     "capacity": 12,
-    "status": "open"
+    "status": "open",
+    "fee": 0
   },
   {
     "id": "activity-2",
@@ -23,7 +24,8 @@
     "location": "信義運動中心",
     "organizerId": "profile-organizer-2",
     "capacity": 10,
-    "status": "open"
+    "status": "open",
+    "fee": 0
   },
   {
     "id": "activity-3",
@@ -36,7 +38,8 @@
     "location": "大稻埕碼頭集合",
     "organizerId": "profile-organizer-1",
     "capacity": 30,
-    "status": "open"
+    "status": "open",
+    "fee": 0
   },
   {
     "id": "activity-4",
@@ -49,7 +52,8 @@
     "location": "內湖運動公園",
     "organizerId": "profile-organizer-2",
     "capacity": 8,
-    "status": "full"
+    "status": "full",
+    "fee": 0
   },
   {
     "id": "activity-5",
@@ -62,7 +66,8 @@
     "location": "松山運動中心",
     "organizerId": "profile-organizer-1",
     "capacity": 12,
-    "status": "open"
+    "status": "open",
+    "fee": 0
   },
   {
     "id": "activity-6",
@@ -75,7 +80,8 @@
     "location": "大安運動中心",
     "organizerId": "profile-organizer-2",
     "capacity": 12,
-    "status": "open"
+    "status": "open",
+    "fee": 0
   },
   {
     "id": "activity-7",
@@ -88,7 +94,8 @@
     "location": "馬場町河濱公園",
     "organizerId": "profile-organizer-1",
     "capacity": 40,
-    "status": "closed"
+    "status": "closed",
+    "fee": 0
   },
   {
     "id": "activity-8",
@@ -101,7 +108,8 @@
     "location": "南港運動中心",
     "organizerId": "profile-organizer-2",
     "capacity": 8,
-    "status": "open"
+    "status": "open",
+    "fee": 0
   },
   {
     "id": "activity-9",
@@ -114,6 +122,7 @@
     "location": "大墩大慶羽球館 4號場",
     "organizerId": "profile-mock-line-user",
     "capacity": 16,
-    "status": "open"
+    "status": "open",
+    "fee": 0
   }
 ]
