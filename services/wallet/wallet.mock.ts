@@ -1,6 +1,6 @@
 import type { WalletService } from './wallet.types'
 import type { ProfileRole } from '~/types'
-import { profilesTable } from '~/mocks/seed'
+import { profilesTable, walletTransactionsTable, generateId } from '~/mocks/seed'
 
 const MOCK_LATENCY_MS = 300
 function delay(ms: number) {
@@ -19,9 +19,24 @@ export const walletServiceMock: WalletService = {
   },
   async applyTopUps(entries) {
     await delay(MOCK_LATENCY_MS)
+    const now = new Date().toISOString()
     for (const entry of entries) {
       const profile = profilesTable.find((p) => p.id === entry.profileId)
-      if (profile) profile.walletBalance = Math.max(0, profile.walletBalance + entry.amount)
+      if (!profile) continue
+      profile.walletBalance = Math.max(0, profile.walletBalance + entry.amount)
+      walletTransactionsTable.unshift({
+        id: generateId('wtx'),
+        profileId: entry.profileId,
+        amount: entry.amount,
+        method: entry.method,
+        createdAt: now
+      })
     }
+  },
+  async listTransactions(profileId) {
+    await delay(MOCK_LATENCY_MS)
+    return walletTransactionsTable
+      .filter((t) => t.profileId === profileId)
+      .sort((a, b) => b.createdAt.localeCompare(a.createdAt))
   }
 }

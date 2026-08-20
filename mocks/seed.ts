@@ -1,6 +1,6 @@
 import { reactive } from 'vue'
 import { nanoid } from 'nanoid'
-import type { Activity, ActivityType, SportType, Registration, Profile } from '~/types'
+import type { Activity, ActivityType, SportType, Registration, Profile, WalletTransaction } from '~/types'
 import activityTypesFixture from './fixtures/activity-types.json'
 import sportTypesFixture from './fixtures/sport-types.json'
 import activitiesFixture from './fixtures/activities.json'
@@ -31,6 +31,9 @@ export const activitiesTable = reactive<Activity[]>(seededActivities)
 export const profilesTable = reactive<Profile[]>([...(profilesFixture as Profile[])])
 // mock only — real impl must hash PINs (e.g. bcrypt) before persisting, never store plaintext.
 export const registrationsTable = reactive<Registration[]>([...(registrationsFixture as Registration[])])
+// mirrors wallet_transactions — mock's applyTopUps() pushes here so the wallet page's 儲值紀錄 has
+// something real (session-local) to read instead of hardcoded fixture rows.
+export const walletTransactionsTable = reactive<WalletTransaction[]>([])
 
 export function findActivityById(id: string): Activity | undefined {
   return activitiesTable.find((a) => a.id === id)

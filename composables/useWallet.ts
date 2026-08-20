@@ -11,6 +11,7 @@ export function useWallet() {
   const service = resolveWalletService()
   return {
     listMembers: service.listMembers,
-    applyTopUps: service.applyTopUps
+    applyTopUps: service.applyTopUps,
+    listTransactions: service.listTransactions
   }
 }

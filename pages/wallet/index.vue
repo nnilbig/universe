@@ -1,7 +1,8 @@
 <script setup lang="ts">
 import { ref, computed, onMounted, watch } from 'vue'
 import { Wallet, Ticket, ChevronDown, PlusCircle } from 'lucide-vue-next'
-import type { Activity, Registration } from '~/types'
+import type { Activity, Registration, WalletTransaction } from '~/types'
+import { formatTransactionDate } from '~/lib/format'
 
 interface RedemptionCardEntry {
   activity: Activity
@@ -11,6 +12,7 @@ interface RedemptionCardEntry {
 const { profile, canToggleViewMode } = useAuth()
 const { myRegistrations } = useRegistrations()
 const { getById } = useActivities()
+const { listTransactions } = useWallet()
 
 const redemptionCards = ref<RedemptionCardEntry[]>([])
 const isLoadingCards = ref(true)
@@ -40,20 +42,42 @@ const PREVIEW_COUNT = 2
 // 0 for guests; once logged in, reads the account's own stored balance (profiles.wallet_balance).
 const balance = computed(() => profile.value?.walletBalance ?? 0)
 
-const topUpHistory = [
-  { id: 't1', label: 'LINE Pay 儲值', amount: '+1,000', date: '2026-08-10' },
-  { id: 't2', label: '現金儲值', amount: '+500', date: '2026-07-28' },
-  { id: 't3', label: 'LINE Pay 儲值', amount: '+2,000', date: '2026-07-15' },
-  { id: 't4', label: '現金儲值', amount: '+300', date: '2026-06-30' }
-]
+const transactions = ref<WalletTransaction[]>([])
+const isLoadingTransactions = ref(true)
 
-const deductionHistory = [
-  { id: 'd1', label: '夜間羽球激戰 報名扣款', amount: '-150', date: '2026-08-14' },
-  { id: 'd2', label: '排球交流之夜 報名扣款', amount: '-200', date: '2026-08-05' },
-  { id: 'd3', label: '半馬備賽團練 報名扣款', amount: '-300', date: '2026-07-20' },
-  { id: 'd4', label: '羽球新手友誼賽 報名扣款', amount: '-150', date: '2026-07-10' },
-  { id: 'd5', label: '排球錦標賽 8 強 報名扣款', amount: '-250', date: '2026-06-22' }
-]
+async function loadTransactions() {
+  isLoadingTransactions.value = true
+  try {
+    transactions.value = profile.value ? await listTransactions(profile.value.id) : []
+  } finally {
+    isLoadingTransactions.value = false
+  }
+}
+
+onMounted(loadTransactions)
+watch(profile, loadTransactions)
+
+function methodLabel(method: WalletTransaction['method']): string {
+  return method === 'linepay' ? 'LINE Pay' : '現金'
+}
+
+function formatAmount(amount: number): string {
+  return `${amount >= 0 ? '+' : ''}${amount.toLocaleString()}`
+}
+
+// wallet_transactions has no free-text reason — positive rows are top-ups (labelled by method),
+// negative rows are admin balance corrections since registration doesn't debit the wallet yet.
+const topUpHistory = computed(() =>
+  transactions.value
+    .filter((t) => t.amount > 0)
+    .map((t) => ({ id: t.id, label: `${methodLabel(t.method)} 儲值`, amount: formatAmount(t.amount), date: formatTransactionDate(t.createdAt) }))
+)
+
+const deductionHistory = computed(() =>
+  transactions.value
+    .filter((t) => t.amount < 0)
+    .map((t) => ({ id: t.id, label: '餘額調整', amount: formatAmount(t.amount), date: formatTransactionDate(t.createdAt) }))
+)
 
 const CARD_PREVIEW_COUNT = 1
 const showAllCards = ref(false)
@@ -64,9 +88,11 @@ const visibleCards = computed(() =>
 const showAllTopUp = ref(false)
 const showAllDeduction = ref(false)
 
-const visibleTopUp = computed(() => (showAllTopUp.value ? topUpHistory : topUpHistory.slice(0, PREVIEW_COUNT)))
+const visibleTopUp = computed(() =>
+  showAllTopUp.value ? topUpHistory.value : topUpHistory.value.slice(0, PREVIEW_COUNT)
+)
 const visibleDeduction = computed(() =>
-  showAllDeduction.value ? deductionHistory : deductionHistory.slice(0, PREVIEW_COUNT)
+  showAllDeduction.value ? deductionHistory.value : deductionHistory.value.slice(0, PREVIEW_COUNT)
 )
 </script>
 
@@ -118,6 +144,8 @@ const visibleDeduction = computed(() =>
 
     <section class="flex flex-col gap-3">
       <h2 class="font-display text-base font-semibold text-titanium-light">儲值紀錄</h2>
+      <p v-if="isLoadingTransactions" class="py-4 text-center text-xs text-titanium/40">載入中...</p>
+      <p v-else-if="!topUpHistory.length" class="py-4 text-center text-xs text-titanium/40">尚無儲值紀錄</p>
       <CommonSkeletonListItem
         v-for="t in visibleTopUp"
         :key="t.id"
@@ -138,6 +166,8 @@ const visibleDeduction = computed(() =>
 
     <section class="flex flex-col gap-3">
       <h2 class="font-display text-base font-semibold text-titanium-light">扣款紀錄</h2>
+      <p v-if="isLoadingTransactions" class="py-4 text-center text-xs text-titanium/40">載入中...</p>
+      <p v-else-if="!deductionHistory.length" class="py-4 text-center text-xs text-titanium/40">尚無扣款紀錄</p>
       <CommonSkeletonListItem
         v-for="d in visibleDeduction"
         :key="d.id"

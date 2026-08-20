@@ -9,6 +9,14 @@ import { mapProfileRow, cacheProfiles, type ProfileRow } from '~/lib/profileCach
 
 const ROLE_PRIORITY: Record<ProfileRole, number> = { subscriber: 0, player: 1, admin: 2, owner: 3 }
 
+interface WalletTransactionRow {
+  id: string
+  profile_id: string
+  amount: number
+  method: 'linepay' | 'cash'
+  created_at: string
+}
+
 export const walletServiceLive: WalletService = {
   async listMembers() {
     const supabase = getSupabaseClient()
@@ -33,5 +41,21 @@ export const walletServiceLive: WalletService = {
       })
       if (error) throw error
     }
+  },
+  async listTransactions(profileId) {
+    const supabase = getSupabaseClient()
+    const { data, error } = await supabase
+      .from('wallet_transactions')
+      .select('*')
+      .eq('profile_id', profileId)
+      .order('created_at', { ascending: false })
+    if (error) throw error
+    return ((data ?? []) as WalletTransactionRow[]).map((row) => ({
+      id: row.id,
+      profileId: row.profile_id,
+      amount: row.amount,
+      method: row.method,
+      createdAt: row.created_at
+    }))
   }
 }

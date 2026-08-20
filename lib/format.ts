@@ -8,3 +8,7 @@ export function formatActivityDate(iso: string): string {
 export function formatTimeRange(start: string, end?: string): string {
   return end ? `${start} - ${end}` : start
 }
+
+export function formatTransactionDate(iso: string): string {
+  return iso.slice(0, 10)
+}
