@@ -5,7 +5,10 @@ const props = defineProps<{ activityId: string }>()
 // 'registering' fires synchronously before any await, so the parent can keep this component
 // mounted for the whole async round-trip — otherwise the registrant-list update (reactive) races
 // ahead, swaps the parent to its "already registered" branch, and unmounts us before we can emit.
-const emit = defineEmits<{ registering: []; registered: [registrationIds: string[]] }>()
+const emit = defineEmits<{
+  registering: []
+  registered: [registrationIds: string[], skipAvatarStep?: boolean]
+}>()
 
 type Mode = 'options' | 'guest'
 const mode = ref<Mode>('options')
@@ -22,10 +25,12 @@ async function onConsentConfirmed() {
   emit('registered', [reg.id])
 }
 
+// Already-authenticated members already have a LINE avatar on file — skip the post-registration
+// avatar prompt that guests (no photo yet) and freshly-bound quick-login accounts still see.
 async function onDirectRegister() {
   emit('registering')
   const reg = await registerWithLine(props.activityId)
-  emit('registered', [reg.id])
+  emit('registered', [reg.id], true)
 }
 
 function onGuestSubmitting() {

@@ -62,9 +62,13 @@ function onRegistering() {
   isRegistering.value = true
 }
 
-function onJustRegistered(registrationIds: string[]) {
+function onJustRegistered(registrationIds: string[], skipAvatarStep?: boolean) {
   isRegistering.value = false
-  pendingAvatarIds.value = registrationIds
+  if (skipAvatarStep) {
+    bumpRefresh()
+  } else {
+    pendingAvatarIds.value = registrationIds
+  }
 }
 
 function onAvatarDone() {
