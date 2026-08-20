@@ -20,5 +20,4 @@ const { viewMode, canToggleViewMode, toggleViewMode } = useAuth()
   >
     管理員
   </button>
-  <UiBadge v-else variant="neutral">球員</UiBadge>
 </template>
