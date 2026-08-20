@@ -95,26 +95,36 @@ async function loginAndSync(): Promise<Profile> {
     throw new Error('LIFF session has no ID token — check the LIFF app requests the "openid" scope')
   }
 
-  const supabase = getSupabaseClient()
-  const { data: fnData, error: fnError } = await supabase.functions.invoke<LineLoginResponse>('line-login', {
-    body: { idToken }
-  })
-  if (fnError) throw fnError
-  if (!fnData) throw new Error('line-login returned no data')
+  try {
+    const supabase = getSupabaseClient()
+    const { data: fnData, error: fnError } = await supabase.functions.invoke<LineLoginResponse>('line-login', {
+      body: { idToken }
+    })
+    if (fnError) throw fnError
+    if (!fnData) throw new Error('line-login returned no data')
 
-  // type must match what generateLink() was called with server-side ('magiclink') — verifyOtp
-  // looks up the stored token by (email, type), so a mismatched type here always reads back as
-  // "expired or invalid" even though the token itself is fine.
-  const { error: otpError } = await supabase.auth.verifyOtp({
-    email: fnData.email,
-    token: fnData.hashedToken,
-    type: 'magiclink'
-  })
-  if (otpError) throw otpError
+    // type must match what generateLink() was called with server-side ('magiclink') — verifyOtp
+    // looks up the stored token by (email, type), so a mismatched type here always reads back as
+    // "expired or invalid" even though the token itself is fine.
+    const { error: otpError } = await supabase.auth.verifyOtp({
+      email: fnData.email,
+      token: fnData.hashedToken,
+      type: 'magiclink'
+    })
+    if (otpError) throw otpError
 
-  await syncFromSupabaseSession()
-  if (!session.profile) throw new Error('Supabase session established but profile sync failed')
-  return session.profile
+    await syncFromSupabaseSession()
+    if (!session.profile) throw new Error('Supabase session established but profile sync failed')
+    return session.profile
+  } catch (err) {
+    // liff.getIDToken() returns whatever was cached at the last liff.login(), which doesn't
+    // auto-refresh — once it's past LINE's own expiry, every retry keeps failing with the exact
+    // same dead token and liff.isLoggedIn() never goes false on its own to unstick it. Clearing
+    // the LIFF session here means the next login attempt does a real liff.login() redirect and
+    // comes back with a fresh token, instead of looping on the same expired one forever.
+    if (liff.isLoggedIn()) liff.logout()
+    throw err
+  }
 }
 
 export const authServiceLive: AuthService = {
