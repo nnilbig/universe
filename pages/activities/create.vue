@@ -44,6 +44,7 @@ function applyBadmintonPreset() {
   endTime.value = '22:00'
   location.value = '大墩大慶羽球館 4號場地'
   capacity.value = '16'
+  fee.value = '210'
 }
 
 const isValid = computed(
@@ -113,7 +114,7 @@ async function submit() {
               class="rounded-full border border-gold/40 px-3 py-1 text-[11px] font-medium text-gold-light transition-colors hover:bg-gold/10"
               @click="applyBadmintonPreset"
             >
-              預設羽球
+              帶入羽球
             </button>
           </div>
           <UiInput v-model="title" placeholder="活動標題" />
@@ -176,12 +177,12 @@ async function submit() {
 
         <div class="flex flex-col gap-1.5">
           <label class="text-xs text-titanium/50">開始時間</label>
-          <UiTimePicker v-model="startTime" />
+          <UiTimePicker v-model="startTime" placeholder="選擇開始時間" />
         </div>
 
         <div class="flex flex-col gap-1.5">
           <label class="text-xs text-titanium/50">結束時間</label>
-          <UiTimePicker v-model="endTime" :min="startTime" />
+          <UiTimePicker v-model="endTime" :min="startTime" placeholder="選擇結束時間" />
         </div>
 
         <div class="flex flex-col gap-1.5">
