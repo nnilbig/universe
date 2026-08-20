@@ -75,21 +75,39 @@ async function syncFromSupabaseSession(): Promise<void> {
   setSession({ profile, isAuthenticated: true, isGuestSession: false })
 }
 
+let loginPromise: Promise<Profile> | null = null
+
 /**
  * Runs LIFF login, exchanges the verified ID token via the `line-login` Edge Function, then
  * redeems the resulting one-time token client-side with verifyOtp(). See
  * supabase/functions/line-login for the server half of this bridge — Supabase's
  * signInWithIdToken() only covers its built-in provider list, and custom OIDC providers there
  * are redirect-only (signInWithOAuth), which doesn't fit LIFF's own in-app login flow.
+ *
+ * De-duped via loginPromise: the magic-link token this mints is single-use, and Supabase
+ * returns the same token for repeat requests within its request-rate window, so two overlapping
+ * calls (e.g. init()'s auto-continue racing a manual button tap) would have the second consume a
+ * token the first already redeemed, always failing as "expired or invalid" no matter how fresh
+ * the underlying LINE login actually was.
  */
-async function loginAndSync(): Promise<Profile> {
+function loginAndSync(): Promise<Profile> {
   if (!liff.isLoggedIn()) {
     liff.login()
     // liff.login() navigates the page away (or completes in place inside the LINE client);
-    // either way this call site doesn't resolve — the app re-runs init() after the redirect.
+    // either way this call site doesn't resolve — the app re-runs init() after the redirect. Kept
+    // outside the loginPromise cache below: if navigation somehow doesn't happen this call must
+    // not permanently wedge every future login attempt behind a promise that will never settle.
     return new Promise<Profile>(() => {})
   }
+  if (!loginPromise) {
+    loginPromise = doLoginAndSync().finally(() => {
+      loginPromise = null
+    })
+  }
+  return loginPromise
+}
 
+async function doLoginAndSync(): Promise<Profile> {
   const idToken = liff.getIDToken()
   if (!idToken) {
     throw new Error('LIFF session has no ID token — check the LIFF app requests the "openid" scope')
