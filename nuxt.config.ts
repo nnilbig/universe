@@ -77,6 +77,13 @@ export default defineNuxtConfig({
     },
     workbox: {
       globPatterns: ['**/*.{js,css,html,png,svg,woff2}'],
+      // Every route here is server-rendered (not a static SPA shell), so there's no single
+      // precached page Workbox's default navigateFallback could serve — it was throwing
+      // "non-precached-url" on every navigation, including the LINE-login redirect back into the
+      // app. The NetworkFirst rule below already handles navigations correctly, so disable the
+      // fallback entirely rather than fight it.
+      navigateFallback: undefined,
+      navigateFallbackDenylist: [/.*/],
       runtimeCaching: [
         {
           urlPattern: ({ request }) => request.mode === 'navigate',
