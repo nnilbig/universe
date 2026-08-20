@@ -102,10 +102,13 @@ async function loginAndSync(): Promise<Profile> {
   if (fnError) throw fnError
   if (!fnData) throw new Error('line-login returned no data')
 
+  // type must match what generateLink() was called with server-side ('magiclink') — verifyOtp
+  // looks up the stored token by (email, type), so a mismatched type here always reads back as
+  // "expired or invalid" even though the token itself is fine.
   const { error: otpError } = await supabase.auth.verifyOtp({
     email: fnData.email,
     token: fnData.hashedToken,
-    type: 'email'
+    type: 'magiclink'
   })
   if (otpError) throw otpError
 
