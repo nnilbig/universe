@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref, computed, onMounted } from 'vue'
+import { ref, computed, onMounted, watch } from 'vue'
 import { cn } from '~/lib/utils'
 
 const { canToggleViewMode, profile } = useAuth()
@@ -21,6 +21,13 @@ const location = ref('')
 const capacity = ref('')
 const fee = ref('')
 
+// Once startTime moves past an already-picked endTime, the picker's own min-based disabling would
+// leave endTime holding a now-invalid value with nothing forcing it back into view — clear it so
+// isValid can't be satisfied by a stale selection.
+watch(startTime, () => {
+  if (endTime.value && endTime.value <= startTime.value) endTime.value = ''
+})
+
 const isValid = computed(
   () =>
     title.value.trim() &&
@@ -28,6 +35,7 @@ const isValid = computed(
     sportTypeId.value &&
     date.value &&
     startTime.value &&
+    (!endTime.value || endTime.value > startTime.value) &&
     location.value.trim() &&
     Number(capacity.value) > 0
 )
@@ -137,14 +145,16 @@ async function submit() {
             <label class="text-xs text-titanium/50">人數上限</label>
             <UiInput v-model="capacity" type="number" inputmode="numeric" placeholder="16" />
           </div>
-          <div class="flex flex-col gap-1.5">
-            <label class="text-xs text-titanium/50">開始時間</label>
-            <UiInput v-model="startTime" type="time" />
-          </div>
-          <div class="flex flex-col gap-1.5">
-            <label class="text-xs text-titanium/50">結束時間</label>
-            <UiInput v-model="endTime" type="time" />
-          </div>
+        </div>
+
+        <div class="flex flex-col gap-1.5">
+          <label class="text-xs text-titanium/50">開始時間</label>
+          <UiTimePicker v-model="startTime" />
+        </div>
+
+        <div class="flex flex-col gap-1.5">
+          <label class="text-xs text-titanium/50">結束時間</label>
+          <UiTimePicker v-model="endTime" :min="startTime" />
         </div>
 
         <div class="flex flex-col gap-1.5">
