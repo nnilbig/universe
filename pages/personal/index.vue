@@ -43,9 +43,29 @@ const todayIso = new Date().toISOString().slice(0, 10)
 const upcoming = computed(() => entries.value.filter((x) => x.activity.date >= todayIso))
 const history = computed(() => entries.value.filter((x) => x.activity.date < todayIso))
 
-async function onCancel(activityId: string, registrationId: string) {
-  await cancel(activityId, registrationId)
-  await load()
+const cancelTarget = ref<MyRegistrationEntry | null>(null)
+const isCancelling = ref(false)
+const confirmOpen = computed({
+  get: () => cancelTarget.value !== null,
+  set: (val: boolean) => {
+    if (!val) cancelTarget.value = null
+  }
+})
+
+function askCancel(entry: MyRegistrationEntry) {
+  cancelTarget.value = entry
+}
+
+async function confirmCancel() {
+  if (!cancelTarget.value) return
+  isCancelling.value = true
+  try {
+    await cancel(cancelTarget.value.activity.id, cancelTarget.value.registration.id)
+    cancelTarget.value = null
+    await load()
+  } finally {
+    isCancelling.value = false
+  }
 }
 </script>
 
@@ -63,7 +83,7 @@ async function onCancel(activityId: string, registrationId: string) {
             :title="x.activity.title"
             :subtitle="`${formatActivityDate(x.activity.date)} · ${x.activity.location}`"
           />
-          <UiButton variant="ghost" size="sm" @click="onCancel(x.activity.id, x.registration.id)">取消</UiButton>
+          <UiButton variant="danger" size="sm" @click="askCancel(x)">取消</UiButton>
         </div>
       </div>
       <p v-else class="text-xs text-titanium/40">目前沒有即將到來的報名。</p>
@@ -82,5 +102,17 @@ async function onCancel(activityId: string, registrationId: string) {
       </div>
       <p v-else class="text-xs text-titanium/40">尚無歷史活動紀錄。</p>
     </section>
+
+    <UiDialog v-model:open="confirmOpen" title="取消報名">
+      <div class="flex flex-col gap-4">
+        <p class="text-sm text-titanium/70">確定要取消「{{ cancelTarget?.activity.title }}」的報名嗎？</p>
+        <div class="flex gap-2">
+          <UiButton variant="outline" size="sm" class="flex-1" @click="confirmOpen = false">返回</UiButton>
+          <UiButton variant="danger" size="sm" class="flex-1" :disabled="isCancelling" @click="confirmCancel">
+            {{ isCancelling ? '處理中...' : '確認取消' }}
+          </UiButton>
+        </div>
+      </div>
+    </UiDialog>
   </div>
 </template>
