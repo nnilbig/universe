@@ -21,7 +21,7 @@ function onInput(e: Event) {
     :maxlength="length"
     :class="
       cn(
-        'h-12 w-full max-w-32 rounded-lg border border-titanium/20 bg-obsidian-900 text-center text-lg font-semibold tracking-[0.5em] text-titanium-light outline-none transition-colors focus:border-gold/60'
+        'h-11 w-full rounded-lg border border-titanium/20 bg-obsidian-900 text-center text-lg font-semibold tracking-[0.5em] text-titanium-light outline-none transition-colors focus:border-gold/60'
       )
     "
     @input="onInput"
