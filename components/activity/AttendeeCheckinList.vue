@@ -1,12 +1,15 @@
 <script setup lang="ts">
-import { computed, ref } from 'vue'
-import { CheckCircle2, Circle } from 'lucide-vue-next'
+import { computed, reactive, ref } from 'vue'
 
 const props = defineProps<{ activityId: string }>()
 
 const { listByActivity, setCheckedIn } = useRegistrations()
 const findProfile = useProfileLookup()
-const pendingIds = ref(new Set<string>())
+
+// Taps stage a checked_in change locally (pendingChanges) instead of writing immediately — the
+// organizer reviews the whole batch, then 批次更新 submits every staged change in one go.
+const pendingChanges = reactive(new Map<string, boolean>())
+const isSubmitting = ref(false)
 
 const attendees = computed(() =>
   listByActivity(props.activityId).map((r) => {
@@ -21,14 +24,27 @@ const attendees = computed(() =>
   })
 )
 
-const checkedInCount = computed(() => attendees.value.filter((a) => a.checkedIn).length)
+function effectiveCheckedIn(a: { id: string; checkedIn: boolean }): boolean {
+  return pendingChanges.has(a.id) ? pendingChanges.get(a.id)! : a.checkedIn
+}
 
-async function toggle(id: string, current: boolean) {
-  pendingIds.value.add(id)
+const checkedInCount = computed(() => attendees.value.filter((a) => effectiveCheckedIn(a)).length)
+const pendingCount = computed(() => pendingChanges.size)
+
+function toggleLocal(a: { id: string; checkedIn: boolean }) {
+  const next = !effectiveCheckedIn(a)
+  if (next === a.checkedIn) pendingChanges.delete(a.id)
+  else pendingChanges.set(a.id, next)
+}
+
+async function submitBatch() {
+  if (!pendingChanges.size) return
+  isSubmitting.value = true
   try {
-    await setCheckedIn(id, !current)
+    await Promise.all([...pendingChanges.entries()].map(([id, checkedIn]) => setCheckedIn(id, checkedIn)))
+    pendingChanges.clear()
   } finally {
-    pendingIds.value.delete(id)
+    isSubmitting.value = false
   }
 }
 </script>
@@ -44,19 +60,29 @@ async function toggle(id: string, current: boolean) {
       尚無人報名
     </p>
 
-    <button
+    <div
       v-for="a in attendees"
       :key="a.id"
-      type="button"
-      :disabled="pendingIds.has(a.id)"
-      class="flex items-center gap-3 rounded-lg border border-titanium/10 bg-obsidian-900 px-3 py-2.5 text-left transition-colors disabled:opacity-50"
-      :class="a.checkedIn ? 'border-gold/30 bg-gold/5' : ''"
-      @click="toggle(a.id, a.checkedIn)"
+      class="flex items-center gap-3 rounded-lg border border-titanium/10 bg-obsidian-900 px-3 py-2.5"
+      :class="effectiveCheckedIn(a) ? 'border-gold/30 bg-gold/5' : ''"
     >
       <UiAvatar :src="a.avatarUrl" :name="a.name" size="sm" />
-      <span class="flex-1 text-sm" :class="a.checkedIn ? 'text-gold-light' : 'text-titanium-light'">{{ a.name }}</span>
-      <CheckCircle2 v-if="a.checkedIn" class="h-5 w-5 shrink-0 text-gold" />
-      <Circle v-else class="h-5 w-5 shrink-0 text-titanium/30" />
-    </button>
+      <span class="flex-1 text-sm" :class="effectiveCheckedIn(a) ? 'text-gold-light' : 'text-titanium-light'">
+        {{ a.name }}
+      </span>
+      <span v-if="pendingChanges.has(a.id)" class="text-[10px] text-titanium/40">未送出</span>
+      <UiButton
+        type="button"
+        size="sm"
+        :variant="effectiveCheckedIn(a) ? 'outline' : 'primary'"
+        @click="toggleLocal(a)"
+      >
+        {{ effectiveCheckedIn(a) ? '取消' : '已出席' }}
+      </UiButton>
+    </div>
+
+    <UiButton v-if="pendingCount" class="mt-1" :disabled="isSubmitting" @click="submitBatch">
+      {{ isSubmitting ? '更新中...' : `批次更新（${pendingCount}）` }}
+    </UiButton>
   </div>
 </template>
