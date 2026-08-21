@@ -19,12 +19,25 @@ const companionName = ref('')
 const isAddingCompanion = ref(false)
 const addError = ref('')
 
-// 主報名者 first, then 友人 in whatever order the server returns them.
+// The member who anchors the group — a LINE registrant, or the 訪客報名 主報名者. Always exactly
+// one of these per group; everyone else is a 補充報名 companion (kind === 'guest', never anchors).
+const anchor = computed(() => props.group.find((r) => r.kind === 'line') ?? props.group.find((r) => r.isPrimary))
+
+function memberName(m: Registration): string {
+  if (m.kind === 'guest') return m.nickname ?? '訪客'
+  return (m.profileId ? findProfile(m.profileId)?.displayName : undefined) ?? 'LINE'
+}
+
+function memberTag(m: Registration): string {
+  if (m.kind === 'line') return '你'
+  return m.isPrimary ? '主報名者' : ''
+}
+
+// Anchor first, then everyone else in whatever order the server returns them.
 const sortedGroup = computed(() =>
-  [...props.group].sort((a, b) => Number(b.isPrimary) - Number(a.isPrimary))
+  [...props.group].sort((a, b) => Number(b.id === anchor.value?.id) - Number(a.id === anchor.value?.id))
 )
-const primary = computed(() => props.group.find((r) => r.isPrimary))
-const code = computed(() => (primary.value ? redemptionCode(primary.value.groupId) : ''))
+const code = computed(() => (anchor.value ? redemptionCode(anchor.value.groupId) : ''))
 
 const confirmOpen = computed({
   get: () => confirmTarget.value !== null,
@@ -71,10 +84,10 @@ async function addCompanion() {
     addError.value = `此場次已有叫「${name}」的球友！請重新輸入。`
     return
   }
-  if (!primary.value) return
+  if (!anchor.value) return
   isAddingCompanion.value = true
   try {
-    await addGuestCompanion(props.activityId, primary.value.groupId, name)
+    await addGuestCompanion(props.activityId, anchor.value.groupId, name)
     guestNames.remember(name)
     companionName.value = ''
     emit('changed')
@@ -109,8 +122,8 @@ async function addCompanion() {
         class="flex items-center justify-between gap-2 rounded-lg border border-titanium/10 bg-obsidian-900 px-3 py-2"
       >
         <span class="text-sm text-titanium-light">
-          {{ m.nickname }}
-          <span v-if="m.isPrimary" class="ml-1 text-[10px] text-gold-light">主報名者</span>
+          {{ memberName(m) }}
+          <span v-if="memberTag(m)" class="ml-1 text-[10px] text-gold-light">{{ memberTag(m) }}</span>
         </span>
         <UiButton variant="outline" size="sm" :disabled="pendingIds.has(m.id)" @click="askCancel(m)">
           取消報名
@@ -133,7 +146,7 @@ async function addCompanion() {
 
     <UiDialog v-model:open="confirmOpen" title="取消報名">
       <div class="flex flex-col gap-4">
-        <p class="text-sm text-titanium/70">確認「{{ confirmTarget?.nickname }}」取消報名？</p>
+        <p class="text-sm text-titanium/70">確認「{{ confirmTarget ? memberName(confirmTarget) : '' }}」取消報名？</p>
         <div class="flex gap-2">
           <UiButton variant="outline" size="sm" class="flex-1" @click="closeConfirm">返回</UiButton>
           <UiButton

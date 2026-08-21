@@ -6,7 +6,7 @@ import { formatActivityDate, formatTimeRange } from '~/lib/format'
 
 const uiStore = useUiStore()
 const { getById } = useActivities()
-const { myRegistration, myGuestGroup } = useRegistrations()
+const { myRegistrationGroup } = useRegistrations()
 const { profile, viewMode } = useAuth()
 const findProfile = useProfileLookup()
 
@@ -42,18 +42,10 @@ watch(
 
 const organizer = computed(() => (activity.value ? findProfile(activity.value.organizerId) : undefined))
 
-const currentRegistration = computed(() => {
-  refreshTick.value
-  if (!activity.value) return null
-  return myRegistration(activity.value.id)
-})
-
-const isLineRegistration = computed(() => currentRegistration.value?.kind === 'line')
-
-const guestGroup = computed(() => {
+const myGroup = computed(() => {
   refreshTick.value
   if (!activity.value) return []
-  return myGuestGroup(activity.value.id)
+  return myRegistrationGroup(activity.value.id)
 })
 
 // Only when manually switched to edit mode — otherwise organizers see the same view as any player.
@@ -128,17 +120,11 @@ function onAvatarDone() {
         :registration-ids="pendingAvatarIds"
         @done="onAvatarDone"
       />
-      <RegistrationRegisteredState
-        v-else-if="isLineRegistration && !isRegistering"
-        :activity-id="activity.id"
-        :registration="currentRegistration!"
-        @cancelled="bumpRefresh"
-      />
-      <RegistrationGuestGroupState
-        v-else-if="guestGroup.length && !isRegistering"
+      <RegistrationGroupState
+        v-else-if="myGroup.length && !isRegistering"
         :activity-id="activity.id"
         :activity="activity"
-        :group="guestGroup"
+        :group="myGroup"
         @changed="bumpRefresh"
       />
       <RegistrationRegisterOptions

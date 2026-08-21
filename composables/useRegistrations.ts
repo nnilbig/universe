@@ -65,27 +65,21 @@ export function useRegistrations() {
     return service.listByActivity(activityId)
   }
 
-  function myRegistration(activityId: string): Registration | null {
+  // The full registration group for this activity that the viewer belongs to — whether they
+  // anchored it themselves (LINE registration or 訪客報名 主報名者) or it's a 補充報名 companion
+  // group — in whatever state the server currently has it. Shrinks as members cancel, grows via
+  // addGuestCompanion. A LINE member is found via their profile id; a guest via the per-activity
+  // localStorage record left by registerAsGuest.
+  function myRegistrationGroup(activityId: string): Registration[] {
     const regs = listByActivity(activityId)
     const { profile } = useAuth()
     if (profile.value) {
       const mine = regs.find((r) => r.kind === 'line' && r.profileId === profile.value!.id)
-      if (mine) return mine
+      if (mine) return regs.filter((r) => r.groupId === mine.groupId)
     }
     const guestRecord = readGuestRecord(activityId)
-    if (guestRecord) {
-      const mine = regs.find((r) => guestRecord.registrationIds.includes(r.id))
-      if (mine) return mine
-    }
-    return null
-  }
-
-  // The full 訪客報名 group this device registered for this activity (主報名者 + 友人), in whatever
-  // state the server currently has it — shrinks as members cancel, grows via addGuestCompanion.
-  function myGuestGroup(activityId: string): Registration[] {
-    const record = readGuestRecord(activityId)
-    if (!record) return []
-    return listByActivity(activityId).filter((r) => r.groupId === record.groupId)
+    if (guestRecord) return regs.filter((r) => r.groupId === guestRecord.groupId)
+    return []
   }
 
   async function registerWithLine(activityId: string) {
@@ -140,8 +134,7 @@ export function useRegistrations() {
 
   return {
     listByActivity,
-    myRegistration,
-    myGuestGroup,
+    myRegistrationGroup,
     myRegistrations,
     registerWithLine,
     registerAsGuest,
