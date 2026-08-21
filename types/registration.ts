@@ -4,14 +4,14 @@ export interface Registration {
   id: string
   activityId: string
   kind: RegistrantKind
-  /** Groups guest registrations that share one PIN (1-4 members); also set (to a unique value) for line registrations. */
+  /** Groups guest registrations from the same 訪客報名 batch (1-4 members, growable via add_guest_companion); also set (to a unique value) for line registrations. */
   groupId: string
+  /** Set when kind === 'guest'. The 主報名者 who started the group — cancelling them cascades to the whole group; cancelling anyone else only removes that row. Always false for kind === 'line'. */
+  isPrimary: boolean
   /** Set when kind === 'line' */
   profileId?: string
-  /** Set when kind === 'guest', max 4 characters */
+  /** Set when kind === 'guest', max 4 characters. MVP has no PIN — this nickname is also what cancel_guest_registration checks against. */
   nickname?: string
-  /** Set when kind === 'guest'. Never store the raw PIN, even in the mock service. */
-  pinHash?: string
   avatarUrl?: string
   /** Set by the organizer on-site check-in (核銷). Defaults to false. */
   checkedIn: boolean
@@ -24,6 +24,5 @@ export interface GuestRegisterMember {
 
 export interface GuestRegisterPayload {
   activityId: string
-  pin: string
-  members: GuestRegisterMember[] // length 1-4, one shared PIN
+  members: GuestRegisterMember[] // length 1-4
 }

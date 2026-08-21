@@ -4,12 +4,16 @@ import type { Registration, RegistrantKind } from '~/types'
 import { getSupabaseClient } from '~/lib/supabase'
 import { cacheProfileRows, type ProfileRow } from '~/lib/profileCache'
 
-// Backing table: registrations(id, activity_id, kind, group_id, profile_id, nickname, avatar_url,
-// checked_in, created_at). There is no pin_hash column reachable from the client — guest PIN
-// hashing/verification happens entirely inside Postgres via SECURITY DEFINER RPC functions, so
-// the client never holds or compares a PIN hash itself:
-//   register_guest(p_activity_id uuid, p_pin text, p_nicknames text[]) returns setof registrations
-//   cancel_guest_registration(p_registration_id uuid, p_pin text) returns void  -- raises on mismatch
+// Backing table: registrations(id, activity_id, kind, group_id, is_primary, profile_id, nickname,
+// avatar_url, checked_in, created_at). MVP guest flow has no PIN — ownership is asserted
+// client-side via composables/useGuestNames.ts's localStorage list, and cancel_guest_registration
+// just checks the submitted nickname against the row's actual nickname as a sanity check (not
+// real auth; see supabase/migrations/20260821000000_guest_no_pin.sql). Guest groups can grow
+// (add_guest_companion, 補充報名) and cascade-cancel through their is_primary member (see
+// supabase/migrations/20260821010000_guest_group_flow.sql):
+//   register_guest(p_activity_id uuid, p_nicknames text[]) returns setof registrations
+//   cancel_guest_registration(p_registration_id uuid, p_nickname text) returns void  -- raises on mismatch, cascades if primary
+//   add_guest_companion(p_group_id uuid, p_nickname text) returns registrations
 // RLS: everyone may select; a LINE registrant may insert/delete/update only their own row
 // (profile_id = auth.uid()); checked_in updates additionally require the caller to be the
 // activity's organizer (or role admin/owner) — enforce that in the policy, not client-side.
@@ -18,6 +22,7 @@ interface RegistrationRow {
   activity_id: string
   kind: RegistrantKind
   group_id: string
+  is_primary: boolean
   profile_id: string | null
   nickname: string | null
   avatar_url: string | null
@@ -33,6 +38,7 @@ function mapRow(row: RegistrationRow): Registration {
     activityId: row.activity_id,
     kind: row.kind,
     groupId: row.group_id,
+    isPrimary: row.is_primary,
     profileId: row.profile_id ?? undefined,
     nickname: row.nickname ?? undefined,
     avatarUrl: row.avatar_url ?? undefined,
@@ -60,6 +66,11 @@ function upsertIntoCache(regs: Registration[]) {
     if (idx === -1) cache.push(reg)
     else cache[idx] = reg
   }
+}
+
+function removeFromCache(registrationId: string) {
+  const idx = cache.findIndex((r) => r.id === registrationId)
+  if (idx !== -1) cache.splice(idx, 1)
 }
 
 function removeFromCacheByGroup(groupId: string) {
@@ -146,13 +157,23 @@ export const registrationsServiceLive: RegistrationService = {
     const supabase = getSupabaseClient()
     const { data, error } = await supabase.rpc('register_guest', {
       p_activity_id: payload.activityId,
-      p_pin: payload.pin,
       p_nicknames: payload.members.map((m) => m.nickname)
     })
     if (error) throw error
     const registrations = (data as RegistrationRow[]).map(mapRow)
     upsertIntoCache(registrations)
     return registrations
+  },
+  async addGuestCompanion(groupId, nickname) {
+    const supabase = getSupabaseClient()
+    const { data, error } = await supabase.rpc('add_guest_companion', {
+      p_group_id: groupId,
+      p_nickname: nickname
+    })
+    if (error) throw error
+    const registration = mapRow(data as RegistrationRow)
+    upsertIntoCache([registration])
+    return registration
   },
   async setAvatar(registrationId, avatarUrl) {
     const supabase = getSupabaseClient()
@@ -161,14 +182,14 @@ export const registrationsServiceLive: RegistrationService = {
     const idx = cache.findIndex((r) => r.id === registrationId)
     if (idx !== -1) cache[idx] = { ...cache[idx], avatarUrl }
   },
-  async cancel(registrationId, pin) {
+  async cancel(registrationId, nickname) {
     const supabase = getSupabaseClient()
     const registration = cache.find((r) => r.id === registrationId)
 
     if (registration?.kind === 'guest') {
       const { error } = await supabase.rpc('cancel_guest_registration', {
         p_registration_id: registrationId,
-        p_pin: pin ?? ''
+        p_nickname: nickname ?? ''
       })
       if (error) throw error
     } else {
@@ -176,7 +197,11 @@ export const registrationsServiceLive: RegistrationService = {
       if (error) throw error
     }
 
-    if (registration) removeFromCacheByGroup(registration.groupId)
+    if (registration?.kind === 'guest' && registration.isPrimary) {
+      removeFromCacheByGroup(registration.groupId)
+    } else {
+      removeFromCache(registrationId)
+    }
   },
   async setCheckedIn(registrationId, checkedIn) {
     const supabase = getSupabaseClient()

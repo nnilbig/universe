@@ -57,7 +57,7 @@ async function onLineLogin() {
         >
           以訪客身份繼續
         </button>
-        <p class="text-center text-[11px] text-titanium/40">免綁定帳號 · 報名時使用 4 位數 PIN 碼即可</p>
+        <p class="text-center text-[11px] text-titanium/40">免綁定帳號 · 輸入暱稱即可報名</p>
       </div>
     </div>
   </UiDialog>

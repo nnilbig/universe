@@ -29,7 +29,6 @@ export const activityTypesTable = reactive<ActivityType[]>([...(activityTypesFix
 export const sportTypesTable = reactive<SportType[]>([...(sportTypesFixture as SportType[])])
 export const activitiesTable = reactive<Activity[]>(seededActivities)
 export const profilesTable = reactive<Profile[]>([...(profilesFixture as Profile[])])
-// mock only — real impl must hash PINs (e.g. bcrypt) before persisting, never store plaintext.
 export const registrationsTable = reactive<Registration[]>([...(registrationsFixture as Registration[])])
 // mirrors wallet_transactions — mock's applyTopUps() pushes here so the wallet page's 儲值紀錄 has
 // something real (session-local) to read instead of hardcoded fixture rows.
@@ -55,7 +54,12 @@ export function insertRegistrations(regs: Registration[]): void {
   registrationsTable.push(...regs)
 }
 
-export function removeRegistrationGroup(groupId: string): void {
+export function removeRegistration(registrationId: string): void {
+  const idx = registrationsTable.findIndex((r) => r.id === registrationId)
+  if (idx !== -1) registrationsTable.splice(idx, 1)
+}
+
+export function removeRegistrationsByGroup(groupId: string): void {
   const idxs = registrationsTable
     .map((r, i) => (r.groupId === groupId ? i : -1))
     .filter((i) => i !== -1)

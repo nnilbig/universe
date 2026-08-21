@@ -13,8 +13,9 @@ interface GuestRegistrationRecord {
   registrationIds: string[]
 }
 
-// Client-side convenience only, for this mock round: lets a guest see their own registered state
-// on revisit within the same browser. Not a security mechanism — cancellation still requires the PIN.
+// Lets a guest see their own registered group (and which registration ids belong to them) on
+// revisit within the same browser. MVP guest flow has no PIN — the group-management UI is gated
+// behind this record existing at all, so per-click identity re-verification isn't needed on top.
 function guestStorageKey(activityId: string) {
   return `whonext:guest-registration:${activityId}`
 }
@@ -33,6 +34,15 @@ function writeGuestRecord(activityId: string, record: GuestRegistrationRecord) {
 function clearGuestRecord(activityId: string) {
   if (import.meta.server) return
   localStorage.removeItem(guestStorageKey(activityId))
+}
+
+// Re-derives registrationIds from whichever of the group's members the server still has —
+// cancelling the isPrimary member cascades server-side to the whole group, so this can drop
+// more than the one id that was actually clicked. Clears the record once nobody is left.
+function syncGuestRecord(activityId: string, groupId: string, currentIds: string[]) {
+  if (import.meta.server) return
+  if (currentIds.length) writeGuestRecord(activityId, { groupId, registrationIds: currentIds })
+  else clearGuestRecord(activityId)
 }
 
 function allGuestRegistrationIds(): string[] {
@@ -71,6 +81,14 @@ export function useRegistrations() {
     return null
   }
 
+  // The full 訪客報名 group this device registered for this activity (主報名者 + 友人), in whatever
+  // state the server currently has it — shrinks as members cancel, grows via addGuestCompanion.
+  function myGuestGroup(activityId: string): Registration[] {
+    const record = readGuestRecord(activityId)
+    if (!record) return []
+    return listByActivity(activityId).filter((r) => r.groupId === record.groupId)
+  }
+
   async function registerWithLine(activityId: string) {
     const { profile } = useAuth()
     if (!profile.value) throw new Error('必須先登入 LINE 帳號')
@@ -86,13 +104,27 @@ export function useRegistrations() {
     return registrations
   }
 
+  // 補充報名 — tops up an existing group with one more member (max 4 total, never primary).
+  async function addGuestCompanion(activityId: string, groupId: string, nickname: string) {
+    const registration = await service.addGuestCompanion(groupId, nickname)
+    const record = readGuestRecord(activityId)
+    if (record) writeGuestRecord(activityId, { ...record, registrationIds: [...record.registrationIds, registration.id] })
+    return registration
+  }
+
   async function setAvatar(registrationId: string, avatarUrl: string) {
     await service.setAvatar(registrationId, avatarUrl)
   }
 
-  async function cancel(activityId: string, registrationId: string, pin?: string) {
-    await service.cancel(registrationId, pin)
-    clearGuestRecord(activityId)
+  async function cancel(activityId: string, registrationId: string, nickname?: string) {
+    const record = readGuestRecord(activityId)
+    await service.cancel(registrationId, nickname)
+    if (record) {
+      const stillThere = listByActivity(activityId)
+        .filter((r) => r.groupId === record.groupId)
+        .map((r) => r.id)
+      syncGuestRecord(activityId, record.groupId, stillThere)
+    }
   }
 
   async function setCheckedIn(registrationId: string, checkedIn: boolean) {
@@ -110,9 +142,11 @@ export function useRegistrations() {
   return {
     listByActivity,
     myRegistration,
+    myGuestGroup,
     myRegistrations,
     registerWithLine,
     registerAsGuest,
+    addGuestCompanion,
     setAvatar,
     cancel,
     setCheckedIn
