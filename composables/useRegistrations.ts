@@ -36,9 +36,8 @@ function clearGuestRecord(activityId: string) {
   localStorage.removeItem(guestStorageKey(activityId))
 }
 
-// Re-derives registrationIds from whichever of the group's members the server still has —
-// cancelling the isPrimary member cascades server-side to the whole group, so this can drop
-// more than the one id that was actually clicked. Clears the record once nobody is left.
+// Re-derives registrationIds from whichever of the group's members the server still has.
+// Clears the record once nobody is left.
 function syncGuestRecord(activityId: string, groupId: string, currentIds: string[]) {
   if (import.meta.server) return
   if (currentIds.length) writeGuestRecord(activityId, { groupId, registrationIds: currentIds })
@@ -133,7 +132,7 @@ export function useRegistrations() {
 
   // All of the current viewer's registrations across every activity — LINE ones via profile id,
   // guest ones via the per-activity localStorage records left by registerAsGuest. Used to list
-  // redemption cards (核銷卡) without requiring the caller to already know which activities to check.
+  // redemption cards (入場通行證) without requiring the caller to already know which activities to check.
   async function myRegistrations(): Promise<Registration[]> {
     const { profile } = useAuth()
     return service.listMine(profile.value?.id ?? null, allGuestRegistrationIds())

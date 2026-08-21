@@ -13,7 +13,6 @@ const guestNames = useGuestNames()
 
 const pendingIds = ref(new Set<string>())
 const confirmTarget = ref<Registration | null>(null)
-const warnPrimary = ref(false)
 const error = ref('')
 
 const companionName = ref('')
@@ -37,12 +36,10 @@ const confirmOpen = computed({
 function askCancel(member: Registration) {
   error.value = ''
   confirmTarget.value = member
-  warnPrimary.value = member.isPrimary
 }
 
 function closeConfirm() {
   confirmTarget.value = null
-  warnPrimary.value = false
 }
 
 async function confirmCancel() {
@@ -134,12 +131,9 @@ async function addCompanion() {
       <p v-if="addError" class="text-xs text-red-400">{{ addError }}</p>
     </div>
 
-    <UiDialog v-model:open="confirmOpen" :title="warnPrimary ? '取消主報名者' : '取消報名'">
+    <UiDialog v-model:open="confirmOpen" title="取消報名">
       <div class="flex flex-col gap-4">
-        <p class="text-sm text-titanium/70">
-          <template v-if="warnPrimary">取消主報名者將連同所有同行友人一併取消，是否繼續？</template>
-          <template v-else>確認「{{ confirmTarget?.nickname }}」取消報名？</template>
-        </p>
+        <p class="text-sm text-titanium/70">確認「{{ confirmTarget?.nickname }}」取消報名？</p>
         <div class="flex gap-2">
           <UiButton variant="outline" size="sm" class="flex-1" @click="closeConfirm">返回</UiButton>
           <UiButton

@@ -8,11 +8,12 @@ import { cacheProfileRows, type ProfileRow } from '~/lib/profileCache'
 // avatar_url, checked_in, created_at). MVP guest flow has no PIN — ownership is asserted
 // client-side via composables/useGuestNames.ts's localStorage list, and cancel_guest_registration
 // just checks the submitted nickname against the row's actual nickname as a sanity check (not
-// real auth; see supabase/migrations/20260821000000_guest_no_pin.sql). Guest groups can grow
-// (add_guest_companion, 補充報名) and cascade-cancel through their is_primary member (see
-// supabase/migrations/20260821010000_guest_group_flow.sql):
+// real auth; see supabase/migrations/20260821000000_guest_no_pin.sql). Guest groups can grow via
+// add_guest_companion (補充報名, see supabase/migrations/20260821010000_guest_group_flow.sql).
+// is_primary marks who started the group (shown as 主報名者) but cancelling them is otherwise
+// the same as anyone else (see supabase/migrations/20260821020000_guest_cancel_no_cascade.sql):
 //   register_guest(p_activity_id uuid, p_nicknames text[]) returns setof registrations
-//   cancel_guest_registration(p_registration_id uuid, p_nickname text) returns void  -- raises on mismatch, cascades if primary
+//   cancel_guest_registration(p_registration_id uuid, p_nickname text) returns void  -- raises on mismatch
 //   add_guest_companion(p_group_id uuid, p_nickname text) returns registrations
 // RLS: everyone may select; a LINE registrant may insert/delete/update only their own row
 // (profile_id = auth.uid()); checked_in updates additionally require the caller to be the
@@ -71,12 +72,6 @@ function upsertIntoCache(regs: Registration[]) {
 function removeFromCache(registrationId: string) {
   const idx = cache.findIndex((r) => r.id === registrationId)
   if (idx !== -1) cache.splice(idx, 1)
-}
-
-function removeFromCacheByGroup(groupId: string) {
-  for (let i = cache.length - 1; i >= 0; i--) {
-    if (cache[i].groupId === groupId) cache.splice(i, 1)
-  }
 }
 
 async function fetchActivityRegistrations(activityId: string): Promise<void> {
@@ -197,11 +192,7 @@ export const registrationsServiceLive: RegistrationService = {
       if (error) throw error
     }
 
-    if (registration?.kind === 'guest' && registration.isPrimary) {
-      removeFromCacheByGroup(registration.groupId)
-    } else {
-      removeFromCache(registrationId)
-    }
+    removeFromCache(registrationId)
   },
   async setCheckedIn(registrationId, checkedIn) {
     const supabase = getSupabaseClient()

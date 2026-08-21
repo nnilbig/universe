@@ -5,7 +5,6 @@ import {
   listRegistrationsByActivity,
   insertRegistrations,
   removeRegistration,
-  removeRegistrationsByGroup,
   updateRegistrationAvatar,
   updateRegistrationCheckedIn,
   generateId
@@ -89,11 +88,7 @@ export const registrationsServiceMock: RegistrationService = {
     if (registration.kind === 'guest' && registration.nickname !== nickname) {
       throw new Error('暱稱不符')
     }
-    if (registration.kind === 'guest' && registration.isPrimary) {
-      removeRegistrationsByGroup(registration.groupId)
-    } else {
-      removeRegistration(registrationId)
-    }
+    removeRegistration(registrationId)
   },
   async setCheckedIn(registrationId, checkedIn) {
     await delay(150)

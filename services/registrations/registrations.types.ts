@@ -7,10 +7,7 @@ export interface RegistrationService {
   /** 補充報名 — adds one more member to an existing guest group (max 4 total). Never primary. */
   addGuestCompanion(groupId: string, nickname: string): Promise<Registration>
   setAvatar(registrationId: string, avatarUrl: string): Promise<void>
-  /**
-   * nickname is required to cancel a guest registration (checked against the row); ignored for
-   * line registrations. Cancelling a guest's isPrimary row cascades to their whole group.
-   */
+  /** nickname is required to cancel a guest registration (checked against the row); ignored for line registrations. */
   cancel(registrationId: string, nickname?: string): Promise<void>
   /** Organizer-only on-site check-in (核銷). No PIN required — gated by edit mode in the UI, not here. */
   setCheckedIn(registrationId: string, checkedIn: boolean): Promise<void>

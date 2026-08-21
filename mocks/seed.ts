@@ -59,14 +59,6 @@ export function removeRegistration(registrationId: string): void {
   if (idx !== -1) registrationsTable.splice(idx, 1)
 }
 
-export function removeRegistrationsByGroup(groupId: string): void {
-  const idxs = registrationsTable
-    .map((r, i) => (r.groupId === groupId ? i : -1))
-    .filter((i) => i !== -1)
-    .sort((a, b) => b - a)
-  for (const i of idxs) registrationsTable.splice(i, 1)
-}
-
 export function updateRegistrationAvatar(registrationId: string, avatarUrl: string): void {
   const reg = registrationsTable.find((r) => r.id === registrationId)
   if (reg) reg.avatarUrl = avatarUrl
