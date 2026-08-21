@@ -7,7 +7,7 @@ const { listByActivity, setCheckedIn } = useRegistrations()
 const findProfile = useProfileLookup()
 
 // Taps stage a checked_in change locally (pendingChanges) instead of writing immediately — the
-// organizer reviews the whole batch, then 批次更新 submits every staged change in one go.
+// organizer reviews the whole batch, then 確認 submits every staged change in one go.
 const pendingChanges = reactive(new Map<string, boolean>())
 const isSubmitting = ref(false)
 
@@ -77,12 +77,12 @@ async function submitBatch() {
         :variant="effectiveCheckedIn(a) ? 'outline' : 'primary'"
         @click="toggleLocal(a)"
       >
-        {{ effectiveCheckedIn(a) ? '取消' : '已出席' }}
+        {{ effectiveCheckedIn(a) ? '取消' : '核銷' }}
       </UiButton>
     </div>
 
     <UiButton v-if="pendingCount" class="mt-1" :disabled="isSubmitting" @click="submitBatch">
-      {{ isSubmitting ? '更新中...' : `批次更新（${pendingCount}）` }}
+      {{ isSubmitting ? '更新中...' : '確認' }}
     </UiButton>
   </div>
 </template>
