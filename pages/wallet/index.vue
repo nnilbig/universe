@@ -116,7 +116,7 @@ const visibleDeduction = computed(() =>
     </NuxtLink>
 
     <section class="flex flex-col gap-3">
-      <h2 class="font-display text-base font-semibold text-titanium-light">活動核銷卡</h2>
+      <h2 class="font-display text-base font-semibold text-titanium-light">入場通行證</h2>
       <p v-if="isLoadingCards" class="py-4 text-center text-xs text-titanium/40">載入中...</p>
       <template v-else-if="redemptionCards.length">
         <div class="flex flex-col gap-3">
@@ -137,8 +137,8 @@ const visibleDeduction = computed(() =>
           <ChevronDown class="h-3.5 w-3.5 transition-transform" :class="showAllCards && 'rotate-180'" />
         </button>
       </template>
-      <CommonPlaceholderCard v-else :icon="Ticket" title="尚無核銷卡">
-        <p class="text-xs text-titanium/50">報名活動後，核銷卡會顯示在這裡，供主辦現場核銷。</p>
+      <CommonPlaceholderCard v-else :icon="Ticket" title="尚無入場通行證">
+        <p class="text-xs text-titanium/50">報名活動後，入場通行證會顯示在這裡，供主辦現場核銷。</p>
       </CommonPlaceholderCard>
     </section>
 

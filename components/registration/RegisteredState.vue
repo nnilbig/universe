@@ -32,7 +32,7 @@ async function onCancelClick() {
         to="/wallet"
         class="inline-flex h-8 flex-1 items-center justify-center gap-2 whitespace-nowrap rounded-full border border-titanium/30 px-3 text-xs font-medium text-titanium-light transition-colors hover:border-gold/60"
       >
-        查看核銷卡
+        查看入場通行證
       </NuxtLink>
       <UiButton variant="danger" size="sm" class="flex-1" :disabled="isSubmitting" @click="onCancelClick">
         {{ isSubmitting ? '處理中...' : '取消報名' }}
