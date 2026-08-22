@@ -15,14 +15,9 @@ const entries = ref<MyRegistrationEntry[]>([])
 const isLoading = ref(true)
 
 async function load() {
-  if (!profile.value) {
-    entries.value = []
-    isLoading.value = false
-    return
-  }
   isLoading.value = true
   try {
-    const regs = (await myRegistrations()).filter((r) => r.kind === 'line')
+    const regs = await myRegistrations()
     const resolved = await Promise.all(
       regs.map(async (registration): Promise<MyRegistrationEntry | null> => {
         const activity = await getById(registration.activityId)
@@ -59,7 +54,7 @@ async function confirmCancel() {
   if (!cancelTarget.value) return
   isCancelling.value = true
   try {
-    await cancel(cancelTarget.value.activity.id, cancelTarget.value.registration.id)
+    await cancel(cancelTarget.value.activity.id, cancelTarget.value.registration.id, cancelTarget.value.registration.nickname)
     cancelTarget.value = null
     await load()
   } finally {
@@ -70,34 +65,40 @@ async function confirmCancel() {
 
 <template>
   <div class="flex flex-col gap-6">
-    <CommonPlaceholderCard v-if="!profile" title="尚未登入" description="登入 LINE 帳號即可查看您的報名紀錄。" />
-    <p v-else-if="isLoading" class="py-10 text-center text-sm text-titanium/50">載入中...</p>
+    <p v-if="isLoading" class="py-10 text-center text-sm text-titanium/50">載入中...</p>
+    <CommonPlaceholderCard
+      v-else-if="!entries.length"
+      title="尚無報名紀錄"
+      description="報名活動後即可在這裡查看您的入場券。"
+    />
 
-    <section v-if="profile && !isLoading" class="flex flex-col gap-3">
-      <h2 class="font-display text-base font-semibold text-titanium-light">近期報名的活動</h2>
-      <div v-if="upcoming.length" class="flex flex-col gap-3">
-        <PersonalRegistrationTicketCard
-          v-for="x in upcoming"
-          :key="x.registration.id"
-          :activity="x.activity"
-          @cancel="askCancel(x)"
-        />
-      </div>
-      <p v-else class="text-xs text-titanium/40">目前沒有即將到來的報名。</p>
-    </section>
+    <template v-else>
+      <section class="flex flex-col gap-3">
+        <h2 class="font-display text-base font-semibold text-titanium-light">近期報名的活動</h2>
+        <div v-if="upcoming.length" class="flex flex-col gap-3">
+          <PersonalRegistrationTicketCard
+            v-for="x in upcoming"
+            :key="x.registration.id"
+            :activity="x.activity"
+            @cancel="askCancel(x)"
+          />
+        </div>
+        <p v-else class="text-xs text-titanium/40">目前沒有即將到來的報名。</p>
+      </section>
 
-    <section v-if="profile && !isLoading" class="flex flex-col gap-3">
-      <h2 class="font-display text-base font-semibold text-titanium-light">歷史活動</h2>
-      <div v-if="history.length" class="flex flex-col gap-3">
-        <PersonalRegistrationTicketCard
-          v-for="x in history"
-          :key="x.registration.id"
-          :activity="x.activity"
-          completed
-        />
-      </div>
-      <p v-else class="text-xs text-titanium/40">尚無歷史活動紀錄。</p>
-    </section>
+      <section class="flex flex-col gap-3">
+        <h2 class="font-display text-base font-semibold text-titanium-light">歷史活動</h2>
+        <div v-if="history.length" class="flex flex-col gap-3">
+          <PersonalRegistrationTicketCard
+            v-for="x in history"
+            :key="x.registration.id"
+            :activity="x.activity"
+            completed
+          />
+        </div>
+        <p v-else class="text-xs text-titanium/40">尚無歷史活動紀錄。</p>
+      </section>
+    </template>
 
     <UiDialog v-model:open="confirmOpen" title="取消報名">
       <div class="flex flex-col gap-4">

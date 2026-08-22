@@ -4,7 +4,7 @@ export interface RegistrationService {
   listByActivity(activityId: string): Registration[]
   registerWithLine(activityId: string, profileId: string): Promise<Registration>
   registerAsGuest(payload: GuestRegisterPayload): Promise<Registration[]>
-  /** 補充報名 — adds one more member to an existing guest group (max 10 total). Never primary. */
+  /** 補充報名 — adds one more member to an existing guest group. Never primary. */
   addGuestCompanion(groupId: string, nickname: string): Promise<Registration>
   setAvatar(registrationId: string, avatarUrl: string): Promise<void>
   /** nickname is required to cancel a guest registration (checked against the row); ignored for line registrations. */

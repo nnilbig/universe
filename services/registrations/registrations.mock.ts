@@ -60,9 +60,6 @@ export const registrationsServiceMock: RegistrationService = {
     await delay()
     const groupmate = registrationsTable.find((r) => r.groupId === groupId)
     if (!groupmate) throw new Error('找不到該報名團')
-    if (registrationsTable.filter((r) => r.groupId === groupId).length >= 10) {
-      throw new Error('此團已達 10 人上限')
-    }
     const registration: Registration = {
       id: generateId('reg'),
       activityId: groupmate.activityId,

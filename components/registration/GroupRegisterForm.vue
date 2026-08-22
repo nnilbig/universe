@@ -9,10 +9,6 @@ const emit = defineEmits<{
   back: []
 }>()
 
-// Self always takes one of the 10 group slots (as the LINE registrant, or as members[0] for a
-// guest group), so the paste list can hold at most 9 more.
-const MAX_FRIENDS = 9
-
 const { isAuthenticated, profile } = useAuth()
 const { registerWithLine, registerAsGuest, addGuestCompanion, listByActivity } = useRegistrations()
 const findProfile = useProfileLookup()
@@ -43,17 +39,12 @@ function commitFromInput(forceAll: boolean) {
   const commitCandidateCount = forceAll || endsWithSeparator ? tokens.length : tokens.length - 1
   const trailingPartial = forceAll || endsWithSeparator ? '' : (text.match(/[^\s\n]*$/)?.[0] ?? '')
 
-  let i = 0
-  for (; i < commitCandidateCount; i++) {
-    if (friendNames.value.length >= MAX_FRIENDS) break
+  for (let i = 0; i < commitCandidateCount; i++) {
     const name = tokens[i].slice(0, 4)
     if (name && !friendNames.value.includes(name)) friendNames.value.push(name)
   }
 
-  // Names that didn't fit because the cap was already reached stay in the box instead of being
-  // silently discarded — the textarea disables at the cap, but the leftover text is still visible.
-  const leftover = tokens.slice(i, commitCandidateCount)
-  rawInput.value = [...leftover, trailingPartial].filter(Boolean).join(' ')
+  rawInput.value = trailingPartial
 }
 
 function onInput() {
@@ -166,15 +157,12 @@ async function submit() {
     </div>
 
     <div>
-      <label class="mb-1.5 block text-xs text-titanium/50">
-        友人暱稱（最多 {{ MAX_FRIENDS }} 位・選填），用空格或換行分隔
-      </label>
+      <label class="mb-1.5 block text-xs text-titanium/50"> 友人暱稱（選填），用空格或換行分隔 </label>
       <textarea
         v-model="rawInput"
         rows="2"
         placeholder="貼上或輸入友人暱稱，例如：小美 阿哲"
-        class="w-full resize-none rounded-lg border border-titanium/20 bg-obsidian-900 px-3 py-2 text-sm text-titanium-light placeholder:text-titanium/40 outline-none transition-colors focus:border-gold/60 disabled:opacity-40"
-        :disabled="friendNames.length >= MAX_FRIENDS"
+        class="w-full resize-none rounded-lg border border-titanium/20 bg-obsidian-900 px-3 py-2 text-sm text-titanium-light placeholder:text-titanium/40 outline-none transition-colors focus:border-gold/60"
         @input="onInput"
         @blur="onBlur"
       />
