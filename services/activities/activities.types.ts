@@ -34,7 +34,7 @@ export interface ActivityService {
   getById(id: string): Promise<ActivityWithLookups | undefined>
   /** 舉辦活動 — organizerId is the caller's own profile id (RLS requires organizer_id = auth.uid()). */
   createActivity(input: CreateActivityInput, organizerId: string): Promise<ActivityWithLookups>
-  /** 關閉活動 — organizer/admin/owner only (RLS-enforced on the live backend). */
+  /** 取消活動 — organizer/admin/owner only (RLS-enforced on the live backend). */
   updateStatus(id: string, status: ActivityStatus): Promise<ActivityWithLookups>
   /** 編輯活動時間/標題/標籤 — organizer/admin/owner only (RLS-enforced on the live backend). */
   updateActivity(id: string, patch: UpdateActivityInput): Promise<ActivityWithLookups>

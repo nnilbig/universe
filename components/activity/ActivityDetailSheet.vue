@@ -112,7 +112,7 @@ async function confirmCloseActivity() {
   try {
     activity.value = await closeActivity(activity.value.id)
   } catch (e) {
-    closeError.value = e instanceof Error ? e.message : '關閉活動失敗'
+    closeError.value = e instanceof Error ? e.message : '取消活動失敗'
   } finally {
     isClosingActivity.value = false
   }
@@ -300,7 +300,7 @@ function onAvatarDone() {
                 :disabled="isClosingActivity"
                 @click="askCloseActivity"
               >
-                關閉活動
+                取消活動
               </UiButton>
             </div>
           </div>
@@ -330,13 +330,13 @@ function onAvatarDone() {
       </div>
     </div>
 
-    <UiDialog v-model:open="confirmCloseOpen" title="關閉活動">
+    <UiDialog v-model:open="confirmCloseOpen" title="取消活動">
       <div class="flex flex-col gap-4">
-        <p class="text-sm text-titanium/70">確認關閉「{{ activity?.title }}」？關閉後將停止接受新的報名。</p>
+        <p class="text-sm text-titanium/70">確認取消「{{ activity?.title }}」？取消後將停止接受新的報名。</p>
         <div class="flex gap-2">
           <UiButton variant="outline" size="sm" class="flex-1" @click="confirmCloseOpen = false">返回</UiButton>
           <UiButton variant="danger" size="sm" class="flex-1" :disabled="isClosingActivity" @click="confirmCloseActivity">
-            確認關閉
+            確認取消
           </UiButton>
         </div>
       </div>
