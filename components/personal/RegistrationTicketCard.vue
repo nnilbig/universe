@@ -48,6 +48,7 @@ const dateParts = computed(() => formatDateParts(props.activity.date))
         <span class="truncate">{{ activity.location }}</span>
       </p>
       <UiButton v-if="!completed" variant="danger" size="sm" class="mt-2" @click="$emit('cancel')">取消</UiButton>
+      <div v-else class="mt-2 h-8" aria-hidden="true" />
     </div>
 
     <div

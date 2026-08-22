@@ -31,6 +31,7 @@ const editStartTime = ref('')
 const editEndTime = ref('')
 const cancelSuccessMessage = ref('')
 let cancelSuccessTimer: ReturnType<typeof setTimeout> | undefined
+const selectedRegistrantName = ref<string | null>(null)
 
 const open = computed({
   get: () => uiStore.expandedActivityId !== null,
@@ -46,6 +47,7 @@ watch(
     pendingAvatarIds.value = null
     isRegistering.value = false
     isEditingActivity.value = false
+    selectedRegistrantName.value = null
     clearTimeout(cancelSuccessTimer)
     cancelSuccessMessage.value = ''
     if (!id) return
@@ -203,10 +205,17 @@ function onAvatarDone() {
 
       <div>
         <div class="mb-2 flex items-center gap-1.5">
-          <h4 class="text-xs font-medium text-titanium/50">已報名成員</h4>
-          <span class="text-xs text-titanium/50">已報名 {{ registeredCount }}/{{ activity.capacity }}</span>
+          <h4 class="text-xs font-medium text-titanium/50">
+            已報名成員<template v-if="selectedRegistrantName">・{{ selectedRegistrantName }}</template>
+          </h4>
+          <span class="text-xs text-titanium/50">目前人數 {{ registeredCount }}/{{ activity.capacity }}</span>
         </div>
-        <ActivityRegisteredAvatarStack :activity-id="activity.id" size="sm" />
+        <ActivityRegisteredAvatarStack
+          :activity-id="activity.id"
+          size="sm"
+          clickable
+          @select="selectedRegistrantName = $event"
+        />
       </div>
 
       <div v-if="canManageActivity" class="flex flex-col gap-4 rounded-card border border-gold/30 bg-gold/5 p-4">

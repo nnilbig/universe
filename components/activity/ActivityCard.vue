@@ -48,7 +48,7 @@ function open() {
       <div class="flex items-center gap-1.5 pt-0.5">
         <UiAvatar :src="organizer?.avatarUrl" :name="organizer?.displayName" size="xs" />
         <ActivityRegisteredAvatarStack :activity-id="activity.id" :max="3" size="xs" />
-        <span class="text-[11px] text-titanium/50">{{ registeredCount }}/{{ activity.capacity }}</span>
+        <span class="text-[11px] text-titanium/50">目前人數{{ registeredCount }}/{{ activity.capacity }}</span>
       </div>
     </div>
   </button>
