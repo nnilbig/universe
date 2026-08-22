@@ -18,34 +18,35 @@ function open() {
 <template>
   <button
     type="button"
-    class="metallic-border flex w-64 shrink-0 flex-col gap-3 bg-obsidian-800 p-4 text-left transition-transform active:scale-[0.98]"
+    class="metallic-border flex w-full items-center gap-3 bg-obsidian-800 p-3 text-left transition-transform active:scale-[0.99]"
     @click="open"
   >
-    <div class="flex items-center justify-between">
-      <span class="font-display text-sm font-semibold text-gold-light">{{ formatActivityDate(activity.date) }}</span>
-      <ActivityStatusBadge :status="activity.status" />
+    <div class="flex w-14 shrink-0 flex-col items-center justify-center gap-0.5 py-1 text-center">
+      <span class="font-display text-xs font-semibold leading-tight text-gold-light">{{ formatActivityDate(activity.date) }}</span>
     </div>
 
-    <div class="flex items-center gap-2 text-xs text-titanium/70">
-      <UiBadge variant="neutral">{{ activity.activityType.labelZh }}</UiBadge>
-      <UiBadge variant="neutral">{{ activity.sportType.labelZh }}</UiBadge>
-    </div>
-
-    <h3 class="line-clamp-2 font-display text-base font-semibold text-titanium-light">{{ activity.title }}</h3>
-
-    <div class="space-y-1 text-xs text-titanium/70">
-      <p>{{ formatTimeRange(activity.startTime, activity.endTime) }}</p>
-      <p class="flex items-center gap-1">
-        <MapPin class="h-3.5 w-3.5 shrink-0" />
-        <span class="line-clamp-1">{{ activity.location }}</span>
-      </p>
-    </div>
-
-    <div class="flex items-center justify-between border-t border-titanium/10 pt-3">
-      <div class="flex items-center gap-1.5">
-        <UiAvatar :src="organizer?.avatarUrl" :name="organizer?.displayName" size="xs" />
-        <span class="text-[11px] text-titanium/50">{{ organizer?.displayName }}</span>
+    <div class="min-w-0 flex-1 space-y-1">
+      <div class="flex items-center gap-2">
+        <h3 class="line-clamp-1 min-w-0 flex-1 font-display text-sm font-semibold text-titanium-light">{{ activity.title }}</h3>
+        <ActivityStatusBadge :status="activity.status" />
       </div>
+
+      <div class="flex items-center gap-2 text-xs text-titanium/70">
+        <UiBadge variant="neutral">{{ activity.activityType.labelZh }}</UiBadge>
+        <UiBadge variant="neutral">{{ activity.sportType.labelZh }}</UiBadge>
+      </div>
+
+      <div class="flex items-center gap-3 text-xs text-titanium/70">
+        <span class="shrink-0">{{ formatTimeRange(activity.startTime, activity.endTime) }}</span>
+        <span class="flex min-w-0 items-center gap-1">
+          <MapPin class="h-3.5 w-3.5 shrink-0" />
+          <span class="line-clamp-1">{{ activity.location }}</span>
+        </span>
+      </div>
+    </div>
+
+    <div class="flex shrink-0 flex-col items-end gap-1.5">
+      <UiAvatar :src="organizer?.avatarUrl" :name="organizer?.displayName" size="xs" />
       <ActivityRegisteredAvatarStack :activity-id="activity.id" :max="3" size="xs" />
     </div>
   </button>
