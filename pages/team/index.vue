@@ -26,6 +26,13 @@ function removeEntry(id: string) {
   entries.value = entries.value.filter((e) => e.id !== id)
 }
 
+// type="number" makes Vue's v-model auto-cast to a Number at runtime (checked against the live
+// DOM element, not the template), which broke .trim() elsewhere — so digits are filtered manually
+// instead of relying on the input type.
+function digitsOnly(value: string) {
+  return value.replace(/\D/g, '')
+}
+
 const showMonthly = ref(false)
 const showIncome = ref(false)
 </script>
@@ -51,13 +58,25 @@ const showIncome = ref(false)
           <div v-for="e in entries" :key="e.id" class="flex items-center gap-3 px-4 py-3">
             <UiAvatar :name="e.name" size="sm" />
             <span class="min-w-0 flex-1 truncate text-sm text-titanium-light">{{ e.name }}</span>
-            <UiInput v-model="e.balance" inputmode="numeric" placeholder="錢包餘額" class="w-24 text-right" />
+            <UiInput
+              :model-value="e.balance"
+              inputmode="numeric"
+              placeholder="錢包餘額"
+              class="w-24 text-right"
+              @update:model-value="e.balance = digitsOnly($event)"
+            />
             <UiButton variant="danger" size="sm" @click="removeEntry(e.id)">移除</UiButton>
           </div>
 
           <div class="flex items-center gap-2 px-4 py-3">
             <UiInput v-model="draftName" placeholder="名稱" class="min-w-0 flex-1" />
-            <UiInput v-model="draftBalance" inputmode="numeric" placeholder="錢包餘額" class="w-24 text-right" />
+            <UiInput
+              :model-value="draftBalance"
+              inputmode="numeric"
+              placeholder="錢包餘額"
+              class="w-24 text-right"
+              @update:model-value="draftBalance = digitsOnly($event)"
+            />
             <UiButton size="sm" :disabled="!canAdd" @click="addEntry">新增</UiButton>
           </div>
         </div>

@@ -202,12 +202,29 @@ export const registrationsServiceLive: RegistrationService = {
     if (idx !== -1) cache[idx] = { ...cache[idx], checkedIn }
   },
   async listMine(profileId, guestRegistrationIds) {
+    const supabase = getSupabaseClient()
+
+    // Companions added via 補充報名 to a LINE registrant's own group share that group's id but have
+    // no profile_id and never get a localStorage record (that's guest-only) — so they'd otherwise
+    // be invisible on the registrant's 個人 page. Look up the registrant's own group ids first so
+    // we can pull those companions in too.
+    let groupIds: string[] = []
+    if (profileId) {
+      const { data, error } = await supabase
+        .from('registrations')
+        .select('group_id')
+        .eq('kind', 'line')
+        .eq('profile_id', profileId)
+      if (error) throw error
+      groupIds = (data as { group_id: string }[]).map((r) => r.group_id)
+    }
+
     const orParts: string[] = []
     if (profileId) orParts.push(`profile_id.eq.${profileId}`)
     if (guestRegistrationIds.length) orParts.push(`id.in.(${guestRegistrationIds.join(',')})`)
+    if (groupIds.length) orParts.push(`group_id.in.(${groupIds.join(',')})`)
     if (!orParts.length) return []
 
-    const supabase = getSupabaseClient()
     const { data, error } = await supabase.from('registrations').select('*, profiles(*)').or(orParts.join(','))
     if (error) throw error
     const rows = data as RegistrationRow[]

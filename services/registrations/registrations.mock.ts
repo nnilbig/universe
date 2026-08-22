@@ -94,8 +94,16 @@ export const registrationsServiceMock: RegistrationService = {
   async listMine(profileId, guestRegistrationIds) {
     await delay(100)
     const guestIds = new Set(guestRegistrationIds)
+    // Companions added via 補充報名 to a LINE registrant's own group share that group's id but have
+    // no profile_id and never get a localStorage record (that's guest-only) — so they'd otherwise
+    // be invisible on the registrant's 個人 page. Pull them in by group id too.
+    const myGroupIds = new Set(
+      registrationsTable.filter((r) => r.kind === 'line' && r.profileId === profileId).map((r) => r.groupId)
+    )
     return registrationsTable.filter(
-      (r) => (r.kind === 'line' && r.profileId === profileId) || (r.kind === 'guest' && guestIds.has(r.id))
+      (r) =>
+        (r.kind === 'line' && r.profileId === profileId) ||
+        (r.kind === 'guest' && (guestIds.has(r.id) || myGroupIds.has(r.groupId)))
     )
   }
 }
