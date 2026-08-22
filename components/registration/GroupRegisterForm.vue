@@ -40,16 +40,20 @@ function commitFromInput(forceAll: boolean) {
   if (!text) return
   const endsWithSeparator = /[\s\n]$/.test(text)
   const tokens = text.split(/[\s\n]+/).filter((t) => t.length > 0)
-  const commitCount = forceAll || endsWithSeparator ? tokens.length : tokens.length - 1
-  const remainder = forceAll || endsWithSeparator ? '' : (text.match(/[^\s\n]*$/)?.[0] ?? '')
+  const commitCandidateCount = forceAll || endsWithSeparator ? tokens.length : tokens.length - 1
+  const trailingPartial = forceAll || endsWithSeparator ? '' : (text.match(/[^\s\n]*$/)?.[0] ?? '')
 
-  for (let i = 0; i < commitCount; i++) {
+  let i = 0
+  for (; i < commitCandidateCount; i++) {
     if (friendNames.value.length >= MAX_FRIENDS) break
     const name = tokens[i].slice(0, 4)
-    if (!name || friendNames.value.includes(name)) continue
-    friendNames.value.push(name)
+    if (name && !friendNames.value.includes(name)) friendNames.value.push(name)
   }
-  rawInput.value = friendNames.value.length >= MAX_FRIENDS ? '' : remainder
+
+  // Names that didn't fit because the cap was already reached stay in the box instead of being
+  // silently discarded — the textarea disables at the cap, but the leftover text is still visible.
+  const leftover = tokens.slice(i, commitCandidateCount)
+  rawInput.value = [...leftover, trailingPartial].filter(Boolean).join(' ')
 }
 
 function onInput() {
