@@ -1,5 +1,13 @@
 import type { ActivityService, ActivityWithLookups } from './activities.types'
-import { activitiesTable, activityTypesTable, sportTypesTable, findActivityById, insertActivity, generateId } from '~/mocks/seed'
+import {
+  activitiesTable,
+  activityTypesTable,
+  sportTypesTable,
+  findActivityById,
+  insertActivity,
+  updateActivityStatus,
+  generateId
+} from '~/mocks/seed'
 
 const MOCK_LATENCY_MS = 200
 
@@ -78,6 +86,13 @@ export const activitiesServiceMock: ActivityService = {
       createdAt: new Date().toISOString()
     }
     insertActivity(activity)
+    return withLookups(activity)
+  },
+  async updateStatus(id, status) {
+    await delay(100)
+    const activity = findActivityById(id)
+    if (!activity) throw new Error(`activity ${id} not found`)
+    updateActivityStatus(id, status)
     return withLookups(activity)
   }
 }

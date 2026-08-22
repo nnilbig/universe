@@ -42,6 +42,11 @@ export function insertActivity(activity: Activity): void {
   activitiesTable.push(activity)
 }
 
+export function updateActivityStatus(activityId: string, status: Activity['status']): void {
+  const activity = activitiesTable.find((a) => a.id === activityId)
+  if (activity) activity.status = status
+}
+
 export function listRegistrationsByActivity(activityId: string): Registration[] {
   return registrationsTable.filter((r) => r.activityId === activityId)
 }

@@ -5,7 +5,7 @@ import type { ActivityWithLookups } from '~/services/activities/activities.types
 import { formatActivityDate, formatTimeRange } from '~/lib/format'
 
 const uiStore = useUiStore()
-const { getById } = useActivities()
+const { getById, closeActivity } = useActivities()
 const { myRegistrationGroup } = useRegistrations()
 const { profile, viewMode } = useAuth()
 const findProfile = useProfileLookup()
@@ -15,6 +15,9 @@ const isLoading = ref(false)
 const refreshTick = ref(0)
 const pendingAvatarIds = ref<string[] | null>(null)
 const isRegistering = ref(false)
+const isClosingActivity = ref(false)
+const closeError = ref('')
+const confirmCloseOpen = ref(false)
 
 const open = computed({
   get: () => uiStore.expandedActivityId !== null,
@@ -57,8 +60,30 @@ const isOwnActivityEditMode = computed(
     viewMode.value === 'edit'
 )
 
+const canCloseActivity = computed(
+  () => !!activity.value && (activity.value.status === 'open' || activity.value.status === 'full')
+)
+
 function bumpRefresh() {
   refreshTick.value++
+}
+
+function askCloseActivity() {
+  closeError.value = ''
+  confirmCloseOpen.value = true
+}
+
+async function confirmCloseActivity() {
+  if (!activity.value) return
+  confirmCloseOpen.value = false
+  isClosingActivity.value = true
+  try {
+    activity.value = await closeActivity(activity.value.id)
+  } catch (e) {
+    closeError.value = e instanceof Error ? e.message : '關閉活動失敗'
+  } finally {
+    isClosingActivity.value = false
+  }
 }
 
 function onRegistering() {
@@ -107,12 +132,25 @@ function onAvatarDone() {
       </div>
 
       <div v-if="isOwnActivityEditMode" class="flex flex-col gap-4 rounded-card border border-gold/30 bg-gold/5 p-4">
-        <div>
-          <p class="text-sm font-medium text-gold-light">這是你發起的活動</p>
-          <p class="mt-1 text-xs text-titanium/50">
-            點擊成員完成現場核銷。編輯活動內容即將推出 — 忘記報名的球員可用「訪客報名」入口現場登記。
-          </p>
+        <div class="flex items-start justify-between gap-3">
+          <div>
+            <p class="text-sm font-medium text-gold-light">這是你發起的活動</p>
+            <p class="mt-1 text-xs text-titanium/50">
+              點擊成員完成現場核銷。編輯活動內容即將推出 — 忘記報名的球員可用「訪客報名」入口現場登記。
+            </p>
+          </div>
+          <UiButton
+            v-if="canCloseActivity"
+            variant="danger"
+            size="sm"
+            class="shrink-0"
+            :disabled="isClosingActivity"
+            @click="askCloseActivity"
+          >
+            關閉活動
+          </UiButton>
         </div>
+        <p v-if="closeError" class="text-xs text-red-400">{{ closeError }}</p>
         <ActivityAttendeeCheckinList :activity-id="activity.id" />
       </div>
       <RegistrationAvatarPicker
@@ -134,5 +172,17 @@ function onAvatarDone() {
         @registered="onJustRegistered"
       />
     </div>
+
+    <UiDialog v-model:open="confirmCloseOpen" title="關閉活動">
+      <div class="flex flex-col gap-4">
+        <p class="text-sm text-titanium/70">確認關閉「{{ activity?.title }}」？關閉後將停止接受新的報名。</p>
+        <div class="flex gap-2">
+          <UiButton variant="outline" size="sm" class="flex-1" @click="confirmCloseOpen = false">返回</UiButton>
+          <UiButton variant="danger" size="sm" class="flex-1" :disabled="isClosingActivity" @click="confirmCloseActivity">
+            確認關閉
+          </UiButton>
+        </div>
+      </div>
+    </UiDialog>
   </UiSheet>
 </template>

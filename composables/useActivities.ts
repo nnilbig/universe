@@ -45,6 +45,12 @@ export function useActivities() {
     return activity
   }
 
+  async function closeActivity(id: string) {
+    const activity = await service.updateStatus(id, 'closed')
+    await Promise.all([loadWeekly(), loadUpcoming()])
+    return activity
+  }
+
   return {
     weekly,
     upcoming,
@@ -56,6 +62,7 @@ export function useActivities() {
     loadUpcoming,
     loadFeed,
     getById,
-    createActivity
+    createActivity,
+    closeActivity
   }
 }

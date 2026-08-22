@@ -169,5 +169,11 @@ export const activitiesServiceLive: ActivityService = {
       .single()
     if (error) throw error
     return withLookups(data as ActivityRow)
+  },
+  async updateStatus(id, status) {
+    const supabase = getSupabaseClient()
+    const { data, error } = await supabase.from('activities').update({ status }).eq('id', id).select('*').single()
+    if (error) throw error
+    return withLookups(data as ActivityRow)
   }
 }
