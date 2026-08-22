@@ -1,14 +1,17 @@
 <script setup lang="ts">
-import { PhCalendarDot, PhUserCircle, PhTrophy, PhStorefront } from '@phosphor-icons/vue'
+import { computed } from 'vue'
+import { PhCalendarDot, PhUserCircle, PhUsersThree, PhTrophy, PhStorefront } from '@phosphor-icons/vue'
 
 const route = useRoute()
+const { canToggleViewMode } = useAuth()
 
-const tabs = [
+const tabs = computed(() => [
   { to: '/', label: '活動', icon: PhCalendarDot },
   { to: '/personal', label: '個人', icon: PhUserCircle },
+  ...(canToggleViewMode.value ? [{ to: '/team', label: '球隊', icon: PhUsersThree }] : []),
   { to: '/ranking', label: '排行', icon: PhTrophy },
   { to: '/shop', label: '商城', icon: PhStorefront }
-]
+])
 
 function isActive(to: string) {
   return to === '/' ? route.path === '/' : route.path.startsWith(to)
