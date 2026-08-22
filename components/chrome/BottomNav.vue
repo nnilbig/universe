@@ -1,11 +1,10 @@
 <script setup lang="ts">
-import { PhCalendarDot, PhUserCircle, PhWallet, PhTrophy, PhStorefront } from '@phosphor-icons/vue'
+import { PhCalendarDot, PhUserCircle, PhTrophy, PhStorefront } from '@phosphor-icons/vue'
 
 const route = useRoute()
 
 const tabs = [
   { to: '/', label: '活動', icon: PhCalendarDot },
-  { to: '/wallet', label: '錢包', icon: PhWallet },
   { to: '/personal', label: '個人', icon: PhUserCircle },
   { to: '/ranking', label: '排行', icon: PhTrophy },
   { to: '/shop', label: '商城', icon: PhStorefront }

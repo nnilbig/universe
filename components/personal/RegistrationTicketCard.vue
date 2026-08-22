@@ -28,6 +28,7 @@ const dateParts = computed(() => formatDateParts(props.activity.date))
     <div class="flex w-16 shrink-0 flex-col items-center justify-center gap-0.5 bg-obsidian-700/50 text-center">
       <span class="font-display text-sm font-semibold leading-tight text-gold-light">{{ dateParts.monthDay }}</span>
       <span class="text-[11px] leading-tight text-titanium/50">{{ dateParts.weekday }}</span>
+      <UiButton v-if="!completed" variant="danger" size="sm" class="mt-2 !px-2" @click="$emit('cancel')">取消</UiButton>
     </div>
 
     <span
@@ -47,8 +48,6 @@ const dateParts = computed(() => formatDateParts(props.activity.date))
         <MapPin class="h-3 w-3 shrink-0" />
         <span class="truncate">{{ activity.location }}</span>
       </p>
-      <UiButton v-if="!completed" variant="danger" size="sm" class="mt-2" @click="$emit('cancel')">取消</UiButton>
-      <div v-else class="mt-2 h-8" aria-hidden="true" />
     </div>
 
     <div
