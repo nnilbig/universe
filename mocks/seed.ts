@@ -1,6 +1,6 @@
 import { reactive } from 'vue'
 import { nanoid } from 'nanoid'
-import type { Activity, ActivityType, SportType, Registration, Profile, WalletTransaction } from '~/types'
+import type { Activity, ActivityType, SportType, Registration, Profile, WalletTransaction, MonthlyDuesEntry } from '~/types'
 import activityTypesFixture from './fixtures/activity-types.json'
 import sportTypesFixture from './fixtures/sport-types.json'
 import activitiesFixture from './fixtures/activities.json'
@@ -33,6 +33,8 @@ export const registrationsTable = reactive<Registration[]>([...(registrationsFix
 // mirrors wallet_transactions — mock's applyTopUps() pushes here so the wallet page's 儲值紀錄 has
 // something real (session-local) to read instead of hardcoded fixture rows.
 export const walletTransactionsTable = reactive<WalletTransaction[]>([])
+// mirrors monthly_dues — session-local roster for the 球隊 > 月繳名單 admin screen.
+export const monthlyDuesTable = reactive<MonthlyDuesEntry[]>([])
 
 export function findActivityById(id: string): Activity | undefined {
   return activitiesTable.find((a) => a.id === id)

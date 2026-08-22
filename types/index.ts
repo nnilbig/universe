@@ -1,4 +1,5 @@
 export * from './activity'
 export * from './registration'
+export * from './team'
 export * from './user'
 export * from './wallet'
