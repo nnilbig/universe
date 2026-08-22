@@ -83,6 +83,8 @@ async function confirmCancel() {
 
 <template>
   <div class="flex flex-col gap-6">
+    <WalletBalanceCard />
+
     <p v-if="isLoading" class="py-10 text-center text-sm text-titanium/50">載入中...</p>
     <CommonPlaceholderCard
       v-else-if="!entries.length"
@@ -92,7 +94,7 @@ async function confirmCancel() {
 
     <template v-else>
       <section class="flex flex-col gap-3">
-        <h2 class="font-display text-base font-semibold text-titanium-light">近期報名的活動</h2>
+        <h2 class="font-display text-base font-semibold text-titanium-light">報名中活動</h2>
         <div v-if="upcoming.length" class="flex flex-col gap-3">
           <PersonalRegistrationTicketCard
             v-for="x in visibleUpcoming"
