@@ -1,10 +1,9 @@
 <script setup lang="ts">
-import { computed, reactive, ref, watch } from 'vue'
-import { GripVertical } from 'lucide-vue-next'
+import { computed, reactive, ref } from 'vue'
 
 const props = defineProps<{ activityId: string }>()
 
-const { listByActivity, setCheckedIn, cancel, adminAddGuest, reorder } = useRegistrations()
+const { listByActivity, setCheckedIn, cancel, adminAddGuest } = useRegistrations()
 const findProfile = useProfileLookup()
 
 const newAttendeeName = ref('')
@@ -40,73 +39,6 @@ const attendees = computed(() =>
     }
   })
 )
-
-// The server's own order (attendees, above) is the source of truth, but a drag in progress needs
-// its own mutable copy of the id order so intermediate positions render smoothly without a round
-// trip per pointermove. Only resynced from the server when the *set* of ids actually changes
-// (someone registered/cancelled/was added) — not on every reactive tick — so it doesn't clobber an
-// in-flight drag or the just-persisted order while the confirming request is still in flight.
-const localOrder = ref<string[]>([])
-watch(
-  () => attendees.value.map((a) => a.id),
-  (ids) => {
-    const sameSet = localOrder.value.length === ids.length && localOrder.value.every((id) => ids.includes(id))
-    if (!sameSet) localOrder.value = ids
-  },
-  { immediate: true }
-)
-
-const orderedAttendees = computed(() => {
-  const byId = new Map(attendees.value.map((a) => [a.id, a]))
-  return localOrder.value.map((id) => byId.get(id)).filter((a): a is (typeof attendees.value)[number] => !!a)
-})
-
-const rowEls = ref<(HTMLElement | null)[]>([])
-function setRowEl(el: unknown, index: number) {
-  rowEls.value[index] = el as HTMLElement | null
-}
-
-const draggingId = ref<string | null>(null)
-const isReordering = ref(false)
-const reorderError = ref('')
-
-function onHandlePointerDown(id: string, event: PointerEvent) {
-  draggingId.value = id
-  ;(event.currentTarget as HTMLElement).setPointerCapture(event.pointerId)
-}
-
-function onHandlePointerMove(event: PointerEvent) {
-  if (!draggingId.value) return
-  const fromIndex = localOrder.value.indexOf(draggingId.value)
-  if (fromIndex === -1) return
-  let toIndex = fromIndex
-  for (let i = 0; i < rowEls.value.length; i++) {
-    const rect = rowEls.value[i]?.getBoundingClientRect()
-    if (!rect) continue
-    toIndex = i
-    if (event.clientY < rect.top + rect.height / 2) break
-  }
-  if (toIndex !== fromIndex) {
-    const ids = [...localOrder.value]
-    const [moved] = ids.splice(fromIndex, 1)
-    ids.splice(toIndex, 0, moved)
-    localOrder.value = ids
-  }
-}
-
-async function onHandlePointerUp() {
-  if (!draggingId.value) return
-  draggingId.value = null
-  isReordering.value = true
-  reorderError.value = ''
-  try {
-    await reorder(props.activityId, localOrder.value)
-  } catch (e) {
-    reorderError.value = e instanceof Error ? e.message : '排序失敗，請再試一次'
-  } finally {
-    isReordering.value = false
-  }
-}
 
 async function addAttendee() {
   addAttendeeError.value = ''
@@ -194,22 +126,11 @@ async function submitBatch() {
     </p>
 
     <div
-      v-for="(a, index) in orderedAttendees"
-      :ref="(el) => setRowEl(el, index)"
+      v-for="a in attendees"
       :key="a.id"
       class="flex items-center gap-3 rounded-lg border border-titanium/10 bg-obsidian-900 px-3 py-2.5"
-      :class="[effectiveCheckedIn(a) ? 'border-gold/30 bg-gold/5' : '', draggingId === a.id ? 'opacity-60' : '']"
+      :class="effectiveCheckedIn(a) ? 'border-gold/30 bg-gold/5' : ''"
     >
-      <button
-        type="button"
-        class="shrink-0 touch-none text-titanium/30 hover:text-titanium/60"
-        @pointerdown="onHandlePointerDown(a.id, $event)"
-        @pointermove="onHandlePointerMove"
-        @pointerup="onHandlePointerUp"
-        @pointercancel="onHandlePointerUp"
-      >
-        <GripVertical class="h-4 w-4" />
-      </button>
       <UiAvatar :src="a.avatarUrl" :name="a.name" size="sm" />
       <span class="flex-1 text-sm" :class="effectiveCheckedIn(a) ? 'text-gold-light' : 'text-titanium-light'">
         {{ a.name }}
@@ -226,7 +147,6 @@ async function submitBatch() {
       <UiButton type="button" size="sm" variant="danger" @click="askCancel(a)">取消報名</UiButton>
     </div>
 
-    <p v-if="reorderError" class="text-xs text-red-400">{{ reorderError }}</p>
     <p v-if="cancelError" class="text-xs text-red-400">{{ cancelError }}</p>
 
     <UiButton v-if="pendingCount" class="mt-1" :disabled="isSubmitting" @click="submitBatch">
