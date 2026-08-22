@@ -80,8 +80,8 @@ async function confirmCancel() {
 async function addCompanion() {
   addError.value = ''
   const name = companionName.value.trim()
-  if (!name || name.length > 4) {
-    addError.value = '請輸入 1-4 個字的暱稱'
+  if (!name || name.length > 8) {
+    addError.value = '請輸入 1-8 個字的暱稱'
     return
   }
   const taken = listByActivity(props.activityId).some(
@@ -144,7 +144,7 @@ async function addCompanion() {
     <div class="mt-3 flex flex-col gap-2">
       <label class="text-xs text-titanium/50">補充報名</label>
       <div class="flex gap-2">
-        <UiInput v-model="companionName" maxlength="4" placeholder="輸入友人暱稱" class="flex-1" />
+        <UiInput v-model="companionName" maxlength="8" placeholder="輸入友人暱稱" class="flex-1" />
         <UiButton variant="primary" size="sm" :disabled="isAddingCompanion" @click="addCompanion">
           {{ isAddingCompanion ? '新增中...' : '新增報名' }}
         </UiButton>

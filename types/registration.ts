@@ -10,7 +10,7 @@ export interface Registration {
   isPrimary: boolean
   /** Set when kind === 'line' */
   profileId?: string
-  /** Set when kind === 'guest', max 4 characters. MVP has no PIN — this nickname is also what cancel_guest_registration checks against. */
+  /** Set when kind === 'guest', max 8 characters. MVP has no PIN — this nickname is also what cancel_guest_registration checks against. */
   nickname?: string
   avatarUrl?: string
   /** Set by the organizer on-site check-in (核銷). Defaults to false. */

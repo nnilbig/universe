@@ -40,7 +40,7 @@ function commitFromInput(forceAll: boolean) {
   const trailingPartial = forceAll || endsWithSeparator ? '' : (text.match(/[^\s\n]*$/)?.[0] ?? '')
 
   for (let i = 0; i < commitCandidateCount; i++) {
-    const name = tokens[i].slice(0, 4)
+    const name = tokens[i].slice(0, 8)
     if (name && !friendNames.value.includes(name)) friendNames.value.push(name)
   }
 
@@ -106,8 +106,8 @@ async function submitAuthenticated() {
 
 async function submitGuest() {
   const name = selfNickname.value.trim()
-  if (!name || name.length > 4) {
-    error.value = '請輸入你的暱稱（最多 4 字）'
+  if (!name || name.length > 8) {
+    error.value = '請輸入你的暱稱（最多 8 字）'
     return
   }
   const allNames = [name, ...friendNames.value]
@@ -152,8 +152,8 @@ async function submit() {
       你將以「{{ selfDisplayName ?? 'LINE' }}」的身分報名
     </div>
     <div v-else>
-      <label class="mb-1.5 block text-xs text-titanium/50">你的暱稱（最多 4 字）</label>
-      <UiInput v-model="selfNickname" maxlength="4" placeholder="輸入暱稱" />
+      <label class="mb-1.5 block text-xs text-titanium/50">你的暱稱（最多 8 字）</label>
+      <UiInput v-model="selfNickname" maxlength="8" placeholder="輸入暱稱" />
     </div>
 
     <div>

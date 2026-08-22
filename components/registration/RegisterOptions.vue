@@ -40,8 +40,8 @@ async function onDirectRegister() {
 async function submitSoloNickname() {
   soloError.value = ''
   const name = soloNickname.value.trim()
-  if (!name || name.length > 4) {
-    soloError.value = '請輸入 1-4 個字的暱稱'
+  if (!name || name.length > 8) {
+    soloError.value = '請輸入 1-8 個字的暱稱'
     return
   }
   isSubmittingSolo.value = true
@@ -74,8 +74,8 @@ function onGroupRegistered(registrationIds: string[], skipAvatarStep?: boolean) 
 
   <div v-else-if="mode === 'solo-nickname'" class="flex flex-col gap-3">
     <div>
-      <label class="mb-1.5 block text-xs text-titanium/50">輸入暱稱（最多 4 字）</label>
-      <UiInput v-model="soloNickname" maxlength="4" placeholder="輸入暱稱" />
+      <label class="mb-1.5 block text-xs text-titanium/50">輸入暱稱（最多 8 字）</label>
+      <UiInput v-model="soloNickname" maxlength="8" placeholder="輸入暱稱" />
     </div>
     <p v-if="soloError" class="text-xs text-red-400">{{ soloError }}</p>
     <div class="flex gap-3">
