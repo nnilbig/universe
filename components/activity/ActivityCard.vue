@@ -2,13 +2,14 @@
 import { computed } from 'vue'
 import { MapPin } from 'lucide-vue-next'
 import type { ActivityWithLookups } from '~/services/activities/activities.types'
-import { formatActivityDate, formatTimeRange } from '~/lib/format'
+import { formatDateParts, formatTimeRange } from '~/lib/format'
 
 const props = defineProps<{ activity: ActivityWithLookups }>()
 
 const uiStore = useUiStore()
 const findProfile = useProfileLookup()
 const organizer = computed(() => findProfile(props.activity.organizerId))
+const dateParts = computed(() => formatDateParts(props.activity.date))
 
 function open() {
   uiStore.expandActivity(props.activity.id)
@@ -18,14 +19,15 @@ function open() {
 <template>
   <button
     type="button"
-    class="metallic-border flex w-full items-start gap-3 bg-obsidian-800 p-3 text-left transition-transform active:scale-[0.99]"
+    class="metallic-border flex w-full items-stretch overflow-hidden bg-obsidian-800 text-left transition-transform active:scale-[0.99]"
     @click="open"
   >
-    <div class="flex w-14 shrink-0 flex-col items-center justify-center gap-0.5 py-1 text-center">
-      <span class="font-display text-xs font-semibold leading-tight text-gold-light">{{ formatActivityDate(activity.date) }}</span>
+    <div class="flex w-16 shrink-0 flex-col items-center justify-center gap-0.5 bg-obsidian-700/50 text-center">
+      <span class="font-display text-sm font-semibold leading-tight text-gold-light">{{ dateParts.monthDay }}</span>
+      <span class="text-[11px] leading-tight text-titanium/50">{{ dateParts.weekday }}</span>
     </div>
 
-    <div class="min-w-0 flex-1 space-y-1.5 py-1">
+    <div class="min-w-0 flex-1 space-y-1.5 p-3">
       <h3 class="line-clamp-1 font-display text-sm font-semibold text-titanium-light">{{ activity.title }}</h3>
 
       <div class="flex flex-wrap items-center gap-1.5">

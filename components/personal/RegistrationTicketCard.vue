@@ -1,18 +1,26 @@
 <script setup lang="ts">
+import { computed } from 'vue'
 import { MapPin } from 'lucide-vue-next'
 import type { Activity } from '~/types'
-import { formatActivityDate, formatTimeRange } from '~/lib/format'
+import { formatDateParts, formatTimeRange } from '~/lib/format'
 
-defineProps<{ activity: Activity; completed?: boolean }>()
+const props = defineProps<{ activity: Activity; completed?: boolean }>()
 defineEmits<{ cancel: [] }>()
 
 // Where the stub's left border sits, measured from the card's right edge — shared by the notch
 // holes and the torn strip so both line up with the stub column exactly.
 const STUB_WIDTH = '2.5rem'
+
+const dateParts = computed(() => formatDateParts(props.activity.date))
 </script>
 
 <template>
-  <div class="metallic-border relative flex bg-obsidian-800">
+  <div class="metallic-border relative flex items-stretch overflow-hidden bg-obsidian-800">
+    <div class="flex w-16 shrink-0 flex-col items-center justify-center gap-0.5 bg-obsidian-700/50 text-center">
+      <span class="font-display text-sm font-semibold leading-tight text-gold-light">{{ dateParts.monthDay }}</span>
+      <span class="text-[11px] leading-tight text-titanium/50">{{ dateParts.weekday }}</span>
+    </div>
+
     <template v-if="!completed">
       <span
         class="absolute top-0 z-10 h-4 w-4 -translate-x-1/2 -translate-y-1/2 rounded-full bg-obsidian-950"
@@ -37,9 +45,7 @@ const STUB_WIDTH = '2.5rem'
 
     <div class="min-w-0 flex-1 p-4">
       <p class="truncate font-display text-sm font-semibold text-titanium-light">{{ activity.title }}</p>
-      <p class="mt-1 text-xs text-titanium/60">
-        {{ formatActivityDate(activity.date) }} · {{ formatTimeRange(activity.startTime, activity.endTime) }}
-      </p>
+      <p class="mt-1 text-xs text-titanium/60">{{ formatTimeRange(activity.startTime, activity.endTime) }}</p>
       <p class="mt-0.5 flex items-center gap-1 text-xs text-titanium/60">
         <MapPin class="h-3 w-3 shrink-0" />
         <span class="truncate">{{ activity.location }}</span>

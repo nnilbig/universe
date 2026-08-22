@@ -5,6 +5,12 @@ export function formatActivityDate(iso: string): string {
   return `${d.getMonth() + 1}/${d.getDate()} (${WEEKDAYS_ZH[d.getDay()]})`
 }
 
+// Same info as formatActivityDate, split for two-line date-stamp layouts (activity card, tickets).
+export function formatDateParts(iso: string): { monthDay: string; weekday: string } {
+  const d = new Date(`${iso}T00:00:00`)
+  return { monthDay: `${d.getMonth() + 1}/${d.getDate()}`, weekday: `(${WEEKDAYS_ZH[d.getDay()]})` }
+}
+
 export function formatTimeRange(start: string, end?: string): string {
   return end ? `${start} - ${end}` : start
 }
