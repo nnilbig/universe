@@ -6,7 +6,7 @@ import { formatActivityDate, formatTimeRange } from '~/lib/format'
 
 const uiStore = useUiStore()
 const { getById, closeActivity } = useActivities()
-const { myRegistrationGroup } = useRegistrations()
+const { myRegistrationGroup, listByActivity } = useRegistrations()
 const { profile, viewMode, canToggleViewMode } = useAuth()
 const findProfile = useProfileLookup()
 
@@ -48,6 +48,8 @@ watch(
 )
 
 const organizer = computed(() => (activity.value ? findProfile(activity.value.organizerId) : undefined))
+
+const registeredCount = computed(() => (activity.value ? listByActivity(activity.value.id).length : 0))
 
 const myGroup = computed(() => {
   refreshTick.value
@@ -146,7 +148,10 @@ function onAvatarDone() {
 
       <div>
         <h4 class="mb-2 text-xs font-medium text-titanium/50">已報名成員</h4>
-        <ActivityRegisteredAvatarStack :activity-id="activity.id" :max="8" size="sm" />
+        <div class="flex items-center justify-between gap-2">
+          <ActivityRegisteredAvatarStack :activity-id="activity.id" :max="8" size="sm" />
+          <span class="shrink-0 text-xs text-titanium/50">{{ registeredCount }}/{{ activity.capacity }}</span>
+        </div>
       </div>
 
       <div v-if="canManageActivity" class="flex flex-col gap-4 rounded-card border border-gold/30 bg-gold/5 p-4">
