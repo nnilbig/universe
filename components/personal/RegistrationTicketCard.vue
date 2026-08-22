@@ -16,16 +16,14 @@ const dateParts = computed(() => formatDateParts(props.activity.date))
 
 <template>
   <div class="metallic-border relative flex items-stretch overflow-hidden bg-obsidian-800">
-    <div
+    <div v-if="completed" class="pointer-events-none absolute inset-0 z-20 bg-obsidian-950/40" />
+    <span
       v-if="completed"
-      class="pointer-events-none absolute inset-0 z-20 flex items-center justify-center bg-obsidian-950/40"
+      class="pointer-events-none absolute top-1/2 z-20 -translate-x-1/2 -translate-y-1/2 -rotate-12 whitespace-nowrap rounded border-2 border-titanium/40 bg-obsidian-800 px-3 py-1 font-display text-sm font-bold uppercase tracking-[0.3em] text-titanium/50"
+      :style="{ left: `calc(100% - ${STUB_WIDTH})` }"
     >
-      <span
-        class="-rotate-12 rounded border-2 border-titanium/40 px-3 py-1 font-display text-sm font-bold uppercase tracking-[0.3em] text-titanium/50"
-      >
-        已結束
-      </span>
-    </div>
+      已結束
+    </span>
 
     <div class="flex w-16 shrink-0 flex-col items-center justify-center gap-0.5 bg-obsidian-700/50 text-center">
       <span class="font-display text-sm font-semibold leading-tight text-gold-light">{{ dateParts.monthDay }}</span>
