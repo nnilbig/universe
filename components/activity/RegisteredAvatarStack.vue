@@ -4,10 +4,11 @@ import { computed } from 'vue'
 const props = withDefaults(
   defineProps<{
     activityId: string
+    /** Omit to show every registrant (wraps onto multiple rows instead of collapsing into +N). */
     max?: number
     size?: 'xs' | 'sm' | 'md'
   }>(),
-  { max: 5, size: 'sm' }
+  { size: 'sm' }
 )
 
 const { listByActivity } = useRegistrations()
@@ -21,13 +22,13 @@ const registrants = computed(() =>
   })
 )
 
-const visible = computed(() => registrants.value.slice(0, props.max))
-const overflowCount = computed(() => Math.max(0, registrants.value.length - props.max))
+const visible = computed(() => (props.max ? registrants.value.slice(0, props.max) : registrants.value))
+const overflowCount = computed(() => (props.max ? Math.max(0, registrants.value.length - props.max) : 0))
 </script>
 
 <template>
   <div v-if="registrants.length" class="flex items-center">
-    <div class="flex -space-x-2">
+    <div class="flex flex-wrap gap-y-2 -space-x-2">
       <UiAvatar
         v-for="r in visible"
         :key="r.key"

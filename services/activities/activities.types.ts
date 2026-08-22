@@ -17,6 +17,15 @@ export interface CreateActivityInput {
   fee: number
 }
 
+export interface UpdateActivityInput {
+  title?: string
+  activityTypeId?: string
+  sportTypeId?: string
+  date?: string
+  startTime?: string
+  endTime?: string
+}
+
 export interface ActivityService {
   // Async because a live implementation fetches these from Supabase; the mock resolves instantly.
   listTypes(): Promise<{ activityTypes: ActivityType[]; sportTypes: SportType[] }>
@@ -27,4 +36,6 @@ export interface ActivityService {
   createActivity(input: CreateActivityInput, organizerId: string): Promise<ActivityWithLookups>
   /** 關閉活動 — organizer/admin/owner only (RLS-enforced on the live backend). */
   updateStatus(id: string, status: ActivityStatus): Promise<ActivityWithLookups>
+  /** 編輯活動時間/標題/標籤 — organizer/admin/owner only (RLS-enforced on the live backend). */
+  updateActivity(id: string, patch: UpdateActivityInput): Promise<ActivityWithLookups>
 }

@@ -47,6 +47,11 @@ export function updateActivityStatus(activityId: string, status: Activity['statu
   if (activity) activity.status = status
 }
 
+export function updateActivityFields(activityId: string, patch: Partial<Activity>): void {
+  const activity = activitiesTable.find((a) => a.id === activityId)
+  if (activity) Object.assign(activity, patch)
+}
+
 export function listRegistrationsByActivity(activityId: string): Registration[] {
   return registrationsTable.filter((r) => r.activityId === activityId)
 }

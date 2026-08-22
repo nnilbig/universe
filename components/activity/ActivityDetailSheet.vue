@@ -149,7 +149,7 @@ function onAvatarDone() {
       <div>
         <h4 class="mb-2 text-xs font-medium text-titanium/50">已報名成員</h4>
         <div class="flex items-center justify-between gap-2">
-          <ActivityRegisteredAvatarStack :activity-id="activity.id" :max="8" size="sm" />
+          <ActivityRegisteredAvatarStack :activity-id="activity.id" size="sm" />
           <span class="shrink-0 text-xs text-titanium/50">{{ registeredCount }}/{{ activity.capacity }}</span>
         </div>
       </div>

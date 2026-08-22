@@ -6,6 +6,7 @@ import {
   findActivityById,
   insertActivity,
   updateActivityStatus,
+  updateActivityFields,
   generateId
 } from '~/mocks/seed'
 
@@ -93,6 +94,13 @@ export const activitiesServiceMock: ActivityService = {
     const activity = findActivityById(id)
     if (!activity) throw new Error(`activity ${id} not found`)
     updateActivityStatus(id, status)
+    return withLookups(activity)
+  },
+  async updateActivity(id, patch) {
+    await delay(100)
+    const activity = findActivityById(id)
+    if (!activity) throw new Error(`activity ${id} not found`)
+    updateActivityFields(id, patch)
     return withLookups(activity)
   }
 }
