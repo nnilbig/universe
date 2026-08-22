@@ -95,7 +95,7 @@ async function submitAuthenticated() {
       ids.push(reg.id)
       guestNames.remember(name)
     }
-    // The self registration is still a LINE one with an existing avatar — same as solo 我要報名.
+    // The self registration is still a LINE one with an existing avatar — same as solo 個人報名.
     emit('registered', ids, true)
   } catch (e) {
     error.value = e instanceof Error ? e.message : '報名失敗，請再試一次'

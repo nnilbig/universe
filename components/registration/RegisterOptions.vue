@@ -31,16 +31,9 @@ async function onDirectRegister() {
     return
   }
 
-  // A device that has registered as a guest before already has a nickname to reuse — skip asking.
-  const recent = guestNames.mostRecent()
-  if (recent) {
-    emit('registering')
-    const [reg] = await registerAsGuest({ activityId: props.activityId, members: [{ nickname: recent }] })
-    emit('registered', [reg.id])
-    return
-  }
-
-  // First-time guest on this device — need a nickname before we can register them.
+  // Pre-fill with this device's most recently used nickname, if any, but always let the guest
+  // confirm (and edit) it before actually registering.
+  soloNickname.value = guestNames.mostRecent()
   mode.value = 'solo-nickname'
 }
 
@@ -75,7 +68,7 @@ function onGroupRegistered(registrationIds: string[], skipAvatarStep?: boolean) 
 
 <template>
   <div v-if="mode === 'options'" class="flex flex-col gap-3">
-    <UiButton variant="primary" size="lg" @click="onDirectRegister">我要報名</UiButton>
+    <UiButton variant="primary" size="lg" @click="onDirectRegister">個人報名</UiButton>
     <UiButton variant="outline" size="lg" @click="mode = 'group'">團體報名</UiButton>
   </div>
 
