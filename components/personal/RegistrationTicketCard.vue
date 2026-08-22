@@ -48,7 +48,11 @@ const STUB_WIDTH = '2.5rem'
       <span v-else class="mt-2 inline-block text-[10px] text-titanium/40">已結束</span>
     </div>
 
-    <div class="flex shrink-0 items-center justify-center" :style="{ width: STUB_WIDTH }">
+    <div
+      class="flex shrink-0 items-center justify-center"
+      :class="!completed && 'border-l border-dashed border-titanium/25'"
+      :style="{ width: STUB_WIDTH }"
+    >
       <span class="rotate-90 whitespace-nowrap text-[10px] tracking-[0.3em] text-titanium/40">入場券</span>
     </div>
   </div>
