@@ -51,13 +51,13 @@ const showIncome = ref(false)
           <div v-for="e in entries" :key="e.id" class="flex items-center gap-3 px-4 py-3">
             <UiAvatar :name="e.name" size="sm" />
             <span class="min-w-0 flex-1 truncate text-sm text-titanium-light">{{ e.name }}</span>
-            <UiInput v-model="e.balance" type="number" inputmode="numeric" placeholder="錢包餘額" class="w-24 text-right" />
+            <UiInput v-model="e.balance" inputmode="numeric" placeholder="錢包餘額" class="w-24 text-right" />
             <UiButton variant="danger" size="sm" @click="removeEntry(e.id)">移除</UiButton>
           </div>
 
           <div class="flex items-center gap-2 px-4 py-3">
             <UiInput v-model="draftName" placeholder="名稱" class="min-w-0 flex-1" />
-            <UiInput v-model="draftBalance" type="number" inputmode="numeric" placeholder="錢包餘額" class="w-24 text-right" />
+            <UiInput v-model="draftBalance" inputmode="numeric" placeholder="錢包餘額" class="w-24 text-right" />
             <UiButton size="sm" :disabled="!canAdd" @click="addEntry">新增</UiButton>
           </div>
         </div>
