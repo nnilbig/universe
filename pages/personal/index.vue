@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { computed, onMounted, ref, watch } from 'vue'
+import { ChevronDown } from 'lucide-vue-next'
 import type { Activity, Registration } from '~/types'
 
 interface MyRegistrationEntry {
@@ -10,6 +11,12 @@ interface MyRegistrationEntry {
 const { profile } = useAuth()
 const { cancel, myRegistrations } = useRegistrations()
 const { getById } = useActivities()
+const findProfile = useProfileLookup()
+
+function registrantName(registration: Registration): string {
+  if (registration.kind === 'guest') return registration.nickname ?? '訪客'
+  return (registration.profileId ? findProfile(registration.profileId)?.displayName : undefined) ?? 'LINE'
+}
 
 const entries = ref<MyRegistrationEntry[]>([])
 const isLoading = ref(true)
@@ -36,6 +43,17 @@ watch(profile, load)
 const todayIso = new Date().toISOString().slice(0, 10)
 const upcoming = computed(() => entries.value.filter((x) => x.activity.date >= todayIso))
 const history = computed(() => entries.value.filter((x) => x.activity.date < todayIso))
+
+const UPCOMING_PREVIEW_COUNT = 3
+const HISTORY_PREVIEW_COUNT = 1
+const showAllUpcoming = ref(false)
+const showAllHistory = ref(false)
+const visibleUpcoming = computed(() =>
+  showAllUpcoming.value ? upcoming.value : upcoming.value.slice(0, UPCOMING_PREVIEW_COUNT)
+)
+const visibleHistory = computed(() =>
+  showAllHistory.value ? history.value : history.value.slice(0, HISTORY_PREVIEW_COUNT)
+)
 
 const cancelTarget = ref<MyRegistrationEntry | null>(null)
 const isCancelling = ref(false)
@@ -77,11 +95,21 @@ async function confirmCancel() {
         <h2 class="font-display text-base font-semibold text-titanium-light">近期報名的活動</h2>
         <div v-if="upcoming.length" class="flex flex-col gap-3">
           <PersonalRegistrationTicketCard
-            v-for="x in upcoming"
+            v-for="x in visibleUpcoming"
             :key="x.registration.id"
             :activity="x.activity"
+            :nickname="registrantName(x.registration)"
             @cancel="askCancel(x)"
           />
+          <button
+            v-if="upcoming.length > UPCOMING_PREVIEW_COUNT"
+            type="button"
+            class="flex items-center justify-center gap-1 py-1 text-xs text-titanium/50 transition-colors hover:text-titanium-light"
+            @click="showAllUpcoming = !showAllUpcoming"
+          >
+            {{ showAllUpcoming ? '收合' : `顯示更多（${upcoming.length - UPCOMING_PREVIEW_COUNT}）` }}
+            <ChevronDown class="h-3.5 w-3.5 transition-transform" :class="showAllUpcoming && 'rotate-180'" />
+          </button>
         </div>
         <p v-else class="text-xs text-titanium/40">目前沒有即將到來的報名。</p>
       </section>
@@ -90,11 +118,21 @@ async function confirmCancel() {
         <h2 class="font-display text-base font-semibold text-titanium-light">歷史活動</h2>
         <div v-if="history.length" class="flex flex-col gap-3">
           <PersonalRegistrationTicketCard
-            v-for="x in history"
+            v-for="x in visibleHistory"
             :key="x.registration.id"
             :activity="x.activity"
+            :nickname="registrantName(x.registration)"
             completed
           />
+          <button
+            v-if="history.length > HISTORY_PREVIEW_COUNT"
+            type="button"
+            class="flex items-center justify-center gap-1 py-1 text-xs text-titanium/50 transition-colors hover:text-titanium-light"
+            @click="showAllHistory = !showAllHistory"
+          >
+            {{ showAllHistory ? '收合' : `顯示更多（${history.length - HISTORY_PREVIEW_COUNT}）` }}
+            <ChevronDown class="h-3.5 w-3.5 transition-transform" :class="showAllHistory && 'rotate-180'" />
+          </button>
         </div>
         <p v-else class="text-xs text-titanium/40">尚無歷史活動紀錄。</p>
       </section>

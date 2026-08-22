@@ -7,7 +7,7 @@ import { formatActivityDate, formatTimeRange } from '~/lib/format'
 const uiStore = useUiStore()
 const { getById, closeActivity } = useActivities()
 const { myRegistrationGroup } = useRegistrations()
-const { profile, viewMode } = useAuth()
+const { profile, viewMode, canToggleViewMode } = useAuth()
 const findProfile = useProfileLookup()
 
 const activity = ref<ActivityWithLookups | null>(null)
@@ -69,13 +69,13 @@ watch(myGroup, (newGroup, oldGroup) => {
   }
 })
 
-// Only when manually switched to edit mode — otherwise organizers see the same view as any player.
-const isOwnActivityEditMode = computed(
-  () =>
-    !!activity.value &&
-    !!profile.value &&
-    activity.value.organizerId === profile.value.id &&
-    viewMode.value === 'edit'
+const isOrganizer = computed(() => !!activity.value && !!profile.value && activity.value.organizerId === profile.value.id)
+
+// Only when manually switched to edit mode — otherwise organizers see the same view as any
+// player. Admins/owners get the same registrant-management powers on any activity, not just
+// their own (see the role comment on Profile.role in types/user.ts).
+const canManageActivity = computed(
+  () => !!activity.value && viewMode.value === 'edit' && (isOrganizer.value || canToggleViewMode.value)
 )
 
 const canCloseActivity = computed(
@@ -149,10 +149,12 @@ function onAvatarDone() {
         <ActivityRegisteredAvatarStack :activity-id="activity.id" :max="8" size="sm" />
       </div>
 
-      <div v-if="isOwnActivityEditMode" class="flex flex-col gap-4 rounded-card border border-gold/30 bg-gold/5 p-4">
+      <div v-if="canManageActivity" class="flex flex-col gap-4 rounded-card border border-gold/30 bg-gold/5 p-4">
         <div class="flex items-start justify-between gap-3">
           <div>
-            <p class="text-sm font-medium text-gold-light">這是你發起的活動</p>
+            <p class="text-sm font-medium text-gold-light">
+              {{ isOrganizer ? '這是你發起的活動' : '你正在以管理員身分管理此活動' }}
+            </p>
             <p class="mt-1 text-xs text-titanium/50">
               點擊成員完成現場核銷。編輯活動內容即將推出 — 忘記報名的球員可用「訪客報名」入口現場登記。
             </p>

@@ -3,7 +3,7 @@ import { computed, reactive, ref } from 'vue'
 
 const props = defineProps<{ activityId: string }>()
 
-const { listByActivity, setCheckedIn } = useRegistrations()
+const { listByActivity, setCheckedIn, cancel } = useRegistrations()
 const findProfile = useProfileLookup()
 
 // Taps stage a checked_in change locally (pendingChanges) instead of writing immediately — the
@@ -11,18 +11,49 @@ const findProfile = useProfileLookup()
 const pendingChanges = reactive(new Map<string, boolean>())
 const isSubmitting = ref(false)
 
+const cancelTarget = ref<{ id: string; name: string; nickname?: string } | null>(null)
+const isCancelling = ref(false)
+const cancelError = ref('')
+const confirmCancelOpen = computed({
+  get: () => cancelTarget.value !== null,
+  set: (val: boolean) => {
+    if (!val) cancelTarget.value = null
+  }
+})
+
 const attendees = computed(() =>
   listByActivity(props.activityId).map((r) => {
-    if (r.kind === 'guest') return { id: r.id, name: r.nickname ?? '訪客', avatarUrl: r.avatarUrl, checkedIn: r.checkedIn }
+    if (r.kind === 'guest')
+      return { id: r.id, name: r.nickname ?? '訪客', nickname: r.nickname, avatarUrl: r.avatarUrl, checkedIn: r.checkedIn }
     const profile = r.profileId ? findProfile(r.profileId) : undefined
     return {
       id: r.id,
       name: profile?.displayName ?? 'LINE',
+      nickname: undefined,
       avatarUrl: r.avatarUrl ?? profile?.avatarUrl,
       checkedIn: r.checkedIn
     }
   })
 )
+
+function askCancel(a: { id: string; name: string; nickname?: string }) {
+  cancelError.value = ''
+  cancelTarget.value = a
+}
+
+async function confirmCancel() {
+  const target = cancelTarget.value
+  if (!target) return
+  isCancelling.value = true
+  try {
+    await cancel(props.activityId, target.id, target.nickname)
+    cancelTarget.value = null
+  } catch (e) {
+    cancelError.value = e instanceof Error ? e.message : '取消失敗'
+  } finally {
+    isCancelling.value = false
+  }
+}
 
 function effectiveCheckedIn(a: { id: string; checkedIn: boolean }): boolean {
   return pendingChanges.has(a.id) ? pendingChanges.get(a.id)! : a.checkedIn
@@ -77,12 +108,27 @@ async function submitBatch() {
         :variant="effectiveCheckedIn(a) ? 'outline' : 'primary'"
         @click="toggleLocal(a)"
       >
-        {{ effectiveCheckedIn(a) ? '取消' : '核銷' }}
+        {{ effectiveCheckedIn(a) ? '取消核銷' : '核銷' }}
       </UiButton>
+      <UiButton type="button" size="sm" variant="danger" @click="askCancel(a)">取消報名</UiButton>
     </div>
+
+    <p v-if="cancelError" class="text-xs text-red-400">{{ cancelError }}</p>
 
     <UiButton v-if="pendingCount" class="mt-1" :disabled="isSubmitting" @click="submitBatch">
       {{ isSubmitting ? '更新中...' : '確認' }}
     </UiButton>
+
+    <UiDialog v-model:open="confirmCancelOpen" title="取消報名">
+      <div class="flex flex-col gap-4">
+        <p class="text-sm text-titanium/70">確認取消「{{ cancelTarget?.name }}」的報名？</p>
+        <div class="flex gap-2">
+          <UiButton variant="outline" size="sm" class="flex-1" @click="confirmCancelOpen = false">返回</UiButton>
+          <UiButton variant="danger" size="sm" class="flex-1" :disabled="isCancelling" @click="confirmCancel">
+            {{ isCancelling ? '處理中...' : '確認取消' }}
+          </UiButton>
+        </div>
+      </div>
+    </UiDialog>
   </div>
 </template>
