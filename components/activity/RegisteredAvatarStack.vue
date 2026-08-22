@@ -28,7 +28,7 @@ const overflowCount = computed(() => (props.max ? Math.max(0, registrants.value.
 
 <template>
   <div v-if="registrants.length" class="flex items-center">
-    <div class="flex flex-wrap gap-y-2 -space-x-2">
+    <div :class="max ? 'flex -space-x-2' : 'flex flex-wrap gap-2'">
       <UiAvatar
         v-for="r in visible"
         :key="r.key"
