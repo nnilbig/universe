@@ -1,7 +1,6 @@
 <script setup lang="ts">
 import { computed, onMounted, ref, watch } from 'vue'
 import type { Activity, Registration } from '~/types'
-import { formatActivityDate } from '~/lib/format'
 
 interface MyRegistrationEntry {
   registration: Registration
@@ -76,28 +75,25 @@ async function confirmCancel() {
 
     <section v-if="profile && !isLoading" class="flex flex-col gap-3">
       <h2 class="font-display text-base font-semibold text-titanium-light">近期報名的活動</h2>
-      <div v-if="upcoming.length" class="flex flex-col gap-2">
-        <div v-for="x in upcoming" :key="x.registration.id" class="flex items-center gap-2">
-          <CommonSkeletonListItem
-            class="flex-1"
-            :title="x.activity.title"
-            :subtitle="`${formatActivityDate(x.activity.date)} · ${x.activity.location}`"
-          />
-          <UiButton variant="danger" size="sm" @click="askCancel(x)">取消</UiButton>
-        </div>
+      <div v-if="upcoming.length" class="flex flex-col gap-3">
+        <PersonalRegistrationTicketCard
+          v-for="x in upcoming"
+          :key="x.registration.id"
+          :activity="x.activity"
+          @cancel="askCancel(x)"
+        />
       </div>
       <p v-else class="text-xs text-titanium/40">目前沒有即將到來的報名。</p>
     </section>
 
     <section v-if="profile && !isLoading" class="flex flex-col gap-3">
       <h2 class="font-display text-base font-semibold text-titanium-light">歷史活動</h2>
-      <div v-if="history.length" class="flex flex-col gap-2">
-        <CommonSkeletonListItem
+      <div v-if="history.length" class="flex flex-col gap-3">
+        <PersonalRegistrationTicketCard
           v-for="x in history"
           :key="x.registration.id"
-          :title="x.activity.title"
-          :subtitle="`${formatActivityDate(x.activity.date)} · ${x.activity.location}`"
-          meta="已結束"
+          :activity="x.activity"
+          completed
         />
       </div>
       <p v-else class="text-xs text-titanium/40">尚無歷史活動紀錄。</p>
