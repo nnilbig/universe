@@ -119,7 +119,12 @@ async function getRange(
   const end = new Date(today)
   end.setDate(end.getDate() + endOffsetDays)
 
-  let query = supabase.from('activities').select('*').gte('date', isoDate(start)).lte('date', isoDate(end))
+  let query = supabase
+    .from('activities')
+    .select('*')
+    .gte('date', isoDate(start))
+    .lte('date', isoDate(end))
+    .neq('status', 'closed')
 
   if (sportTypeCode && sportTypeCode !== 'all') {
     const sportType = sportTypes.find((s) => s.code === sportTypeCode)

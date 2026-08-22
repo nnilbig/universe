@@ -47,7 +47,7 @@ export const activitiesServiceMock: ActivityService = {
       .map(withLookups)
       .filter((a) => {
         const offset = daysFromToday(a.date)
-        return offset >= 0 && offset <= 6
+        return offset >= 0 && offset <= 6 && a.status !== 'closed'
       })
       .sort((a, b) => a.date.localeCompare(b.date))
     return bySportType(list, sportTypeCode)
@@ -58,7 +58,7 @@ export const activitiesServiceMock: ActivityService = {
       .map(withLookups)
       .filter((a) => {
         const offset = daysFromToday(a.date)
-        return offset > 6 && offset <= 27
+        return offset > 6 && offset <= 27 && a.status !== 'closed'
       })
       .sort((a, b) => a.date.localeCompare(b.date))
     return bySportType(list, sportTypeCode)
