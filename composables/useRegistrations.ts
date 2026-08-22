@@ -132,6 +132,11 @@ export function useRegistrations() {
     await service.setCheckedIn(registrationId, checkedIn)
   }
 
+  // 管理員/發起人拖曳排序 — orderedIds must be exactly this activity's current registration ids.
+  async function reorder(activityId: string, orderedIds: string[]) {
+    return service.reorder(activityId, orderedIds)
+  }
+
   // All of the current viewer's registrations across every activity — LINE ones via profile id,
   // guest ones via the per-activity localStorage records left by registerAsGuest. Used to list
   // redemption cards (入場通行證) without requiring the caller to already know which activities to check.
@@ -150,6 +155,7 @@ export function useRegistrations() {
     addGuestCompanion,
     setAvatar,
     cancel,
-    setCheckedIn
+    setCheckedIn,
+    reorder
   }
 }

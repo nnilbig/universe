@@ -7,6 +7,7 @@ import {
   removeRegistration,
   updateRegistrationAvatar,
   updateRegistrationCheckedIn,
+  reorderRegistrations,
   generateId
 } from '~/mocks/seed'
 
@@ -97,5 +98,10 @@ export const registrationsServiceMock: RegistrationService = {
     return registrationsTable.filter(
       (r) => (r.kind === 'line' && r.profileId === profileId) || (r.kind === 'guest' && guestIds.has(r.id))
     )
+  },
+  async reorder(activityId, orderedIds) {
+    await delay(100)
+    reorderRegistrations(activityId, orderedIds)
+    return listRegistrationsByActivity(activityId)
   }
 }

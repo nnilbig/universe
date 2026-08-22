@@ -29,6 +29,7 @@ interface RegistrationRow {
   avatar_url: string | null
   checked_in: boolean
   created_at: string
+  display_order: number
   // joined in via `select('*, profiles(*)')` for line registrations only — absent on realtime payloads.
   profiles?: ProfileRow | null
 }
@@ -74,13 +75,27 @@ function removeFromCache(registrationId: string) {
   if (idx !== -1) cache.splice(idx, 1)
 }
 
+// Replaces this activity's slice of the cache with regs in the given order — unlike
+// upsertIntoCache (which only adds/patches in place), this actually reorders, so a fresh fetch or
+// a reorder() result is reflected in listByActivity()'s iteration order.
+function setActivityOrder(activityId: string, regs: Registration[]) {
+  for (let i = cache.length - 1; i >= 0; i--) {
+    if (cache[i].activityId === activityId) cache.splice(i, 1)
+  }
+  cache.push(...regs)
+}
+
 async function fetchActivityRegistrations(activityId: string): Promise<void> {
   const supabase = getSupabaseClient()
-  const { data, error } = await supabase.from('registrations').select('*, profiles(*)').eq('activity_id', activityId)
+  const { data, error } = await supabase
+    .from('registrations')
+    .select('*, profiles(*)')
+    .eq('activity_id', activityId)
+    .order('display_order')
   if (error) throw error
   const rows = data as RegistrationRow[]
   cacheJoinedProfiles(rows)
-  upsertIntoCache(rows.map(mapRow))
+  setActivityOrder(activityId, rows.map(mapRow))
 }
 
 // Keeps check-ins and new registrations in sync across devices (the organizer check-in list is
@@ -214,6 +229,17 @@ export const registrationsServiceLive: RegistrationService = {
     cacheJoinedProfiles(rows)
     const registrations = rows.map(mapRow)
     upsertIntoCache(registrations)
+    return registrations
+  },
+  async reorder(activityId, orderedIds) {
+    const supabase = getSupabaseClient()
+    const { data, error } = await supabase.rpc('reorder_registrations', {
+      p_activity_id: activityId,
+      p_ids: orderedIds
+    })
+    if (error) throw error
+    const registrations = (data as RegistrationRow[]).map(mapRow)
+    setActivityOrder(activityId, registrations)
     return registrations
   }
 }

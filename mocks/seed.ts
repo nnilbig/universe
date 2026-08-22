@@ -56,6 +56,16 @@ export function listRegistrationsByActivity(activityId: string): Registration[] 
   return registrationsTable.filter((r) => r.activityId === activityId)
 }
 
+// 管理員/發起人拖曳排序 — reorders this activity's slice of the table to match orderedIds;
+// listRegistrationsByActivity's filter then reflects the new order since it's array order.
+export function reorderRegistrations(activityId: string, orderedIds: string[]): void {
+  const mine = orderedIds
+    .map((id) => registrationsTable.find((r) => r.id === id && r.activityId === activityId))
+    .filter((r): r is Registration => !!r)
+  const others = registrationsTable.filter((r) => r.activityId !== activityId)
+  registrationsTable.splice(0, registrationsTable.length, ...others, ...mine)
+}
+
 export function findProfileById(id: string): Profile | undefined {
   return profilesTable.find((p) => p.id === id)
 }

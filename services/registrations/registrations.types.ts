@@ -18,4 +18,6 @@ export interface RegistrationService {
    * rather than a scan of whatever's already been fetched into a per-activity cache.
    */
   listMine(profileId: string | null, guestRegistrationIds: string[]): Promise<Registration[]>
+  /** 管理員/發起人拖曳排序 — orderedIds must be exactly this activity's current registration ids. */
+  reorder(activityId: string, orderedIds: string[]): Promise<Registration[]>
 }
