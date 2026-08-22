@@ -97,7 +97,7 @@ export function useRegistrations() {
     return registrations
   }
 
-  // 補充報名 — tops up an existing group with one more member (max 4 total, never primary).
+  // 補充報名 — tops up an existing group with one more member (max 10 total, never primary).
   async function addGuestCompanion(activityId: string, groupId: string, nickname: string) {
     const registration = await service.addGuestCompanion(groupId, nickname)
     const record = readGuestRecord(activityId)

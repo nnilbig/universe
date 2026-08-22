@@ -9,9 +9,9 @@ const emit = defineEmits<{
   back: []
 }>()
 
-// Self always takes one of the 4 group slots (as the LINE registrant, or as members[0] for a
-// guest group), so the paste list can hold at most 3 more.
-const MAX_FRIENDS = 3
+// Self always takes one of the 10 group slots (as the LINE registrant, or as members[0] for a
+// guest group), so the paste list can hold at most 9 more.
+const MAX_FRIENDS = 9
 
 const { isAuthenticated, profile } = useAuth()
 const { registerWithLine, registerAsGuest, addGuestCompanion, listByActivity } = useRegistrations()

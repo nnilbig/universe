@@ -141,7 +141,7 @@ async function addCompanion() {
     <p v-if="cancelSuccessMessage" class="mt-2 text-xs text-gold-light">{{ cancelSuccessMessage }}</p>
     <p v-if="error" class="mt-2 text-xs text-red-400">{{ error }}</p>
 
-    <div v-if="group.length < 4" class="mt-3 flex flex-col gap-2">
+    <div v-if="group.length < 10" class="mt-3 flex flex-col gap-2">
       <label class="text-xs text-titanium/50">補充報名</label>
       <div class="flex gap-2">
         <UiInput v-model="companionName" maxlength="4" placeholder="輸入友人暱稱" class="flex-1" />
