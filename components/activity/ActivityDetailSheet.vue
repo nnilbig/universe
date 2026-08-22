@@ -18,6 +18,8 @@ const isRegistering = ref(false)
 const isClosingActivity = ref(false)
 const closeError = ref('')
 const confirmCloseOpen = ref(false)
+const cancelSuccessMessage = ref('')
+let cancelSuccessTimer: ReturnType<typeof setTimeout> | undefined
 
 const open = computed({
   get: () => uiStore.expandedActivityId !== null,
@@ -32,6 +34,8 @@ watch(
     activity.value = null
     pendingAvatarIds.value = null
     isRegistering.value = false
+    clearTimeout(cancelSuccessTimer)
+    cancelSuccessMessage.value = ''
     if (!id) return
     isLoading.value = true
     try {
@@ -49,6 +53,20 @@ const myGroup = computed(() => {
   refreshTick.value
   if (!activity.value) return []
   return myRegistrationGroup(activity.value.id)
+})
+
+// Cancelling the group's last member reactively empties myGroup and swaps this view back to
+// RegistrationRegisterOptions — which unmounts RegistrationGroupState before an emit from it would
+// reliably reach us (the reactive swap and the emit race on the same microtask). Watching here
+// instead of listening for a child emit sidesteps that race entirely.
+watch(myGroup, (newGroup, oldGroup) => {
+  if (oldGroup && oldGroup.length > 0 && newGroup.length === 0) {
+    clearTimeout(cancelSuccessTimer)
+    cancelSuccessMessage.value = '取消成功'
+    cancelSuccessTimer = setTimeout(() => {
+      cancelSuccessMessage.value = ''
+    }, 2500)
+  }
 })
 
 // Only when manually switched to edit mode — otherwise organizers see the same view as any player.
@@ -165,12 +183,14 @@ function onAvatarDone() {
         :group="myGroup"
         @changed="bumpRefresh"
       />
-      <RegistrationRegisterOptions
-        v-else
-        :activity-id="activity.id"
-        @registering="onRegistering"
-        @registered="onJustRegistered"
-      />
+      <div v-else class="flex flex-col gap-3">
+        <p v-if="cancelSuccessMessage" class="text-xs text-gold-light">{{ cancelSuccessMessage }}</p>
+        <RegistrationRegisterOptions
+          :activity-id="activity.id"
+          @registering="onRegistering"
+          @registered="onJustRegistered"
+        />
+      </div>
     </div>
 
     <UiDialog v-model:open="confirmCloseOpen" title="關閉活動">

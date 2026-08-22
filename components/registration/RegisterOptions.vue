@@ -10,56 +10,94 @@ const emit = defineEmits<{
   registered: [registrationIds: string[], skipAvatarStep?: boolean]
 }>()
 
-type Mode = 'options' | 'guest'
+type Mode = 'options' | 'solo-nickname' | 'group'
 const mode = ref<Mode>('options')
-const showConsent = ref(false)
 
-const { isAuthenticated, bindLineAccount } = useAuth()
-const { registerWithLine } = useRegistrations()
+const { isAuthenticated } = useAuth()
+const { registerWithLine, registerAsGuest } = useRegistrations()
+const guestNames = useGuestNames()
 
-async function onConsentConfirmed() {
-  showConsent.value = false
-  emit('registering')
-  await bindLineAccount()
-  const reg = await registerWithLine(props.activityId)
-  emit('registered', [reg.id])
-}
+const soloNickname = ref('')
+const soloError = ref('')
+const isSubmittingSolo = ref(false)
 
 // Already-authenticated members already have a LINE avatar on file — skip the post-registration
-// avatar prompt that guests (no photo yet) and freshly-bound quick-login accounts still see.
+// avatar prompt that fresh guests (no photo yet) still see.
 async function onDirectRegister() {
-  emit('registering')
-  const reg = await registerWithLine(props.activityId)
-  emit('registered', [reg.id], true)
+  if (isAuthenticated.value) {
+    emit('registering')
+    const reg = await registerWithLine(props.activityId)
+    emit('registered', [reg.id], true)
+    return
+  }
+
+  // A device that has registered as a guest before already has a nickname to reuse — skip asking.
+  const recent = guestNames.mostRecent()
+  if (recent) {
+    emit('registering')
+    const [reg] = await registerAsGuest({ activityId: props.activityId, members: [{ nickname: recent }] })
+    emit('registered', [reg.id])
+    return
+  }
+
+  // First-time guest on this device — need a nickname before we can register them.
+  mode.value = 'solo-nickname'
 }
 
-function onGuestSubmitting() {
+async function submitSoloNickname() {
+  soloError.value = ''
+  const name = soloNickname.value.trim()
+  if (!name || name.length > 4) {
+    soloError.value = '請輸入 1-4 個字的暱稱'
+    return
+  }
+  isSubmittingSolo.value = true
+  emit('registering')
+  try {
+    const [reg] = await registerAsGuest({ activityId: props.activityId, members: [{ nickname: name }] })
+    guestNames.remember(name)
+    emit('registered', [reg.id])
+  } catch (e) {
+    soloError.value = e instanceof Error ? e.message : '報名失敗，請再試一次'
+  } finally {
+    isSubmittingSolo.value = false
+  }
+}
+
+function onGroupSubmitting() {
   emit('registering')
 }
 
-function onGuestRegistered(registrationIds: string[]) {
-  emit('registered', registrationIds)
+function onGroupRegistered(registrationIds: string[], skipAvatarStep?: boolean) {
+  emit('registered', registrationIds, skipAvatarStep)
 }
 </script>
 
 <template>
-  <div v-if="mode === 'options' && isAuthenticated" class="flex flex-col gap-3">
+  <div v-if="mode === 'options'" class="flex flex-col gap-3">
     <UiButton variant="primary" size="lg" @click="onDirectRegister">我要報名</UiButton>
-  </div>
-  <div v-else-if="mode === 'options'" class="flex flex-col gap-3">
-    <UiButton variant="primary" size="lg" @click="showConsent = true">快速登入報名</UiButton>
-    <UiButton variant="outline" size="lg" @click="mode = 'guest'">訪客報名</UiButton>
+    <UiButton variant="outline" size="lg" @click="mode = 'group'">團體報名</UiButton>
   </div>
 
-  <RegistrationGuestRegisterForm
-    v-else-if="mode === 'guest'"
+  <div v-else-if="mode === 'solo-nickname'" class="flex flex-col gap-3">
+    <div>
+      <label class="mb-1.5 block text-xs text-titanium/50">輸入暱稱（最多 4 字）</label>
+      <UiInput v-model="soloNickname" maxlength="4" placeholder="輸入暱稱" />
+    </div>
+    <p v-if="soloError" class="text-xs text-red-400">{{ soloError }}</p>
+    <div class="flex gap-3">
+      <UiButton variant="outline" class="flex-1" @click="mode = 'options'">返回</UiButton>
+      <UiButton variant="primary" class="flex-1" :disabled="isSubmittingSolo" @click="submitSoloNickname">
+        {{ isSubmittingSolo ? '報名中...' : '確認報名' }}
+      </UiButton>
+    </div>
+  </div>
+
+  <RegistrationGroupRegisterForm
+    v-else-if="mode === 'group'"
     :activity-id="activityId"
-    @submitting="onGuestSubmitting"
-    @registered="onGuestRegistered"
+    @submitting="onGroupSubmitting"
+    @registered="onGroupRegistered"
     @back="mode = 'options'"
   />
-
-  <UiDialog v-model:open="showConsent" title="綁定 LINE 帳號">
-    <RegistrationQuickLoginConsent @confirm="onConsentConfirmed" @cancel="showConsent = false" />
-  </UiDialog>
 </template>

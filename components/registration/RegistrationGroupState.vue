@@ -14,6 +14,8 @@ const guestNames = useGuestNames()
 const pendingIds = ref(new Set<string>())
 const confirmTarget = ref<Registration | null>(null)
 const error = ref('')
+const cancelSuccessMessage = ref('')
+let cancelSuccessTimer: ReturnType<typeof setTimeout> | undefined
 
 const companionName = ref('')
 const isAddingCompanion = ref(false)
@@ -63,6 +65,11 @@ async function confirmCancel() {
   try {
     await cancel(props.activityId, member.id, member.nickname)
     emit('changed')
+    clearTimeout(cancelSuccessTimer)
+    cancelSuccessMessage.value = '取消成功'
+    cancelSuccessTimer = setTimeout(() => {
+      cancelSuccessMessage.value = ''
+    }, 2500)
   } catch (e) {
     error.value = e instanceof Error ? e.message : '取消失敗'
   } finally {
@@ -131,6 +138,7 @@ async function addCompanion() {
       </div>
     </div>
 
+    <p v-if="cancelSuccessMessage" class="mt-2 text-xs text-gold-light">{{ cancelSuccessMessage }}</p>
     <p v-if="error" class="mt-2 text-xs text-red-400">{{ error }}</p>
 
     <div v-if="group.length < 4" class="mt-3 flex flex-col gap-2">
