@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { ref, computed, onMounted, watch } from 'vue'
-import { Wallet, Ticket, ChevronDown, PlusCircle } from 'lucide-vue-next'
+import { Wallet, Ticket, ChevronDown } from 'lucide-vue-next'
 import type { Activity, Registration, WalletTransaction } from '~/types'
 import { formatTransactionDate } from '~/lib/format'
 
@@ -9,7 +9,7 @@ interface RedemptionCardEntry {
   registration: Registration
 }
 
-const { profile, canToggleViewMode } = useAuth()
+const { profile } = useAuth()
 const { myRegistrations } = useRegistrations()
 const { getById } = useActivities()
 const { listTransactions } = useWallet()
@@ -100,20 +100,11 @@ const visibleDeduction = computed(() =>
   <div class="flex flex-col gap-6">
     <div class="metallic-border flex items-center justify-between bg-obsidian-800 p-5">
       <div>
-        <p class="text-xs text-titanium/50">儲值餘額</p>
+        <p class="text-xs text-titanium/50">錢包餘額</p>
         <p class="font-display text-2xl font-bold text-gold-light">${{ balance.toLocaleString() }}</p>
       </div>
       <Wallet class="h-8 w-8 text-gold/60" />
     </div>
-
-    <NuxtLink
-      v-if="canToggleViewMode"
-      to="/wallet/topup"
-      class="metallic-border flex items-center gap-2 bg-obsidian-800 px-4 py-3 text-sm text-titanium-light transition-colors active:bg-obsidian-700"
-    >
-      <PlusCircle class="h-4 w-4 text-gold-light" />
-      儲值管理
-    </NuxtLink>
 
     <section class="flex flex-col gap-3">
       <h2 class="font-display text-base font-semibold text-titanium-light">入場通行證</h2>
