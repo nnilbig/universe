@@ -51,6 +51,12 @@ export function useActivities() {
     return activity
   }
 
+  async function editActivity(id: string, patch: Parameters<ActivityService['updateActivity']>[1]) {
+    const activity = await service.updateActivity(id, patch)
+    await Promise.all([loadWeekly(), loadUpcoming()])
+    return activity
+  }
+
   return {
     weekly,
     upcoming,
@@ -63,6 +69,7 @@ export function useActivities() {
     loadFeed,
     getById,
     createActivity,
-    closeActivity
+    closeActivity,
+    editActivity
   }
 }

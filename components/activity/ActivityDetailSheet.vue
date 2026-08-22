@@ -3,9 +3,10 @@ import { ref, computed, watch } from 'vue'
 import { MapPin } from 'lucide-vue-next'
 import type { ActivityWithLookups } from '~/services/activities/activities.types'
 import { formatActivityDate, formatTimeRange } from '~/lib/format'
+import { cn } from '~/lib/utils'
 
 const uiStore = useUiStore()
-const { getById, closeActivity } = useActivities()
+const { getById, closeActivity, editActivity, activityTypes, sportTypes, loadLookups } = useActivities()
 const { myRegistrationGroup, listByActivity } = useRegistrations()
 const { profile, viewMode, canToggleViewMode } = useAuth()
 const findProfile = useProfileLookup()
@@ -18,6 +19,16 @@ const isRegistering = ref(false)
 const isClosingActivity = ref(false)
 const closeError = ref('')
 const confirmCloseOpen = ref(false)
+
+const isEditingActivity = ref(false)
+const isSavingEdit = ref(false)
+const editError = ref('')
+const editTitle = ref('')
+const editActivityTypeId = ref('')
+const editSportTypeId = ref('')
+const editDate = ref('')
+const editStartTime = ref('')
+const editEndTime = ref('')
 const cancelSuccessMessage = ref('')
 let cancelSuccessTimer: ReturnType<typeof setTimeout> | undefined
 
@@ -34,6 +45,7 @@ watch(
     activity.value = null
     pendingAvatarIds.value = null
     isRegistering.value = false
+    isEditingActivity.value = false
     clearTimeout(cancelSuccessTimer)
     cancelSuccessMessage.value = ''
     if (!id) return
@@ -106,6 +118,49 @@ async function confirmCloseActivity() {
   }
 }
 
+async function startEditActivity() {
+  if (!activity.value) return
+  if (!activityTypes.value.length || !sportTypes.value.length) await loadLookups()
+  editError.value = ''
+  editTitle.value = activity.value.title
+  editActivityTypeId.value = activity.value.activityTypeId
+  editSportTypeId.value = activity.value.sportTypeId
+  editDate.value = activity.value.date
+  editStartTime.value = activity.value.startTime
+  editEndTime.value = activity.value.endTime ?? ''
+  isEditingActivity.value = true
+}
+
+function cancelEditActivity() {
+  isEditingActivity.value = false
+}
+
+async function saveEditActivity() {
+  if (!activity.value) return
+  const title = editTitle.value.trim()
+  if (!title || !editActivityTypeId.value || !editSportTypeId.value || !editDate.value || !editStartTime.value) {
+    editError.value = '請完整填寫活動時間、標題與標籤'
+    return
+  }
+  isSavingEdit.value = true
+  editError.value = ''
+  try {
+    activity.value = await editActivity(activity.value.id, {
+      title,
+      activityTypeId: editActivityTypeId.value,
+      sportTypeId: editSportTypeId.value,
+      date: editDate.value,
+      startTime: editStartTime.value,
+      endTime: editEndTime.value || undefined
+    })
+    isEditingActivity.value = false
+  } catch (e) {
+    editError.value = e instanceof Error ? e.message : '儲存失敗，請再試一次'
+  } finally {
+    isSavingEdit.value = false
+  }
+}
+
 function onRegistering() {
   isRegistering.value = true
 }
@@ -155,28 +210,103 @@ function onAvatarDone() {
       </div>
 
       <div v-if="canManageActivity" class="flex flex-col gap-4 rounded-card border border-gold/30 bg-gold/5 p-4">
-        <div class="flex items-start justify-between gap-3">
-          <div>
-            <p class="text-sm font-medium text-gold-light">
-              {{ isOrganizer ? '這是你發起的活動' : '你正在以管理員身分管理此活動' }}
-            </p>
-            <p class="mt-1 text-xs text-titanium/50">
-              點擊成員完成現場核銷。編輯活動內容即將推出 — 忘記報名的球員可用「訪客報名」入口現場登記。
-            </p>
+        <template v-if="isEditingActivity">
+          <div class="flex flex-col gap-3">
+            <div class="flex flex-col gap-1.5">
+              <label class="text-xs text-titanium/50">標題</label>
+              <UiInput v-model="editTitle" placeholder="活動標題" />
+            </div>
+
+            <div class="flex flex-col gap-1.5">
+              <label class="text-xs text-titanium/50">活動類型</label>
+              <div class="flex flex-wrap gap-2">
+                <button
+                  v-for="t in activityTypes"
+                  :key="t.id"
+                  type="button"
+                  :class="
+                    cn(
+                      'rounded-full border px-4 py-1.5 text-xs font-medium transition-colors',
+                      editActivityTypeId === t.id
+                        ? 'border-gold/60 bg-gold/10 text-gold-light'
+                        : 'border-titanium/15 text-titanium/60 hover:border-titanium/30'
+                    )
+                  "
+                  @click="editActivityTypeId = t.id"
+                >
+                  {{ t.labelZh }}
+                </button>
+              </div>
+            </div>
+
+            <div class="flex flex-col gap-1.5">
+              <label class="text-xs text-titanium/50">運動類型</label>
+              <div class="flex flex-wrap gap-2">
+                <button
+                  v-for="s in sportTypes"
+                  :key="s.id"
+                  type="button"
+                  :class="
+                    cn(
+                      'rounded-full border px-4 py-1.5 text-xs font-medium transition-colors',
+                      editSportTypeId === s.id
+                        ? 'border-gold/60 bg-gold/10 text-gold-light'
+                        : 'border-titanium/15 text-titanium/60 hover:border-titanium/30'
+                    )
+                  "
+                  @click="editSportTypeId = s.id"
+                >
+                  {{ s.labelZh }}
+                </button>
+              </div>
+            </div>
+
+            <div class="flex flex-col gap-1.5">
+              <label class="text-xs text-titanium/50">日期</label>
+              <UiInput v-model="editDate" type="date" />
+            </div>
+            <div class="flex flex-col gap-1.5">
+              <label class="text-xs text-titanium/50">開始時間</label>
+              <UiTimePicker v-model="editStartTime" placeholder="選擇開始時間" />
+            </div>
+            <div class="flex flex-col gap-1.5">
+              <label class="text-xs text-titanium/50">結束時間</label>
+              <UiTimePicker v-model="editEndTime" :min="editStartTime" placeholder="選擇結束時間" />
+            </div>
           </div>
-          <UiButton
-            v-if="canCloseActivity"
-            variant="danger"
-            size="sm"
-            class="shrink-0"
-            :disabled="isClosingActivity"
-            @click="askCloseActivity"
-          >
-            關閉活動
-          </UiButton>
-        </div>
-        <p v-if="closeError" class="text-xs text-red-400">{{ closeError }}</p>
-        <ActivityAttendeeCheckinList :activity-id="activity.id" />
+          <p v-if="editError" class="text-xs text-red-400">{{ editError }}</p>
+          <div class="flex gap-2">
+            <UiButton variant="outline" size="sm" class="flex-1" @click="cancelEditActivity">取消</UiButton>
+            <UiButton variant="primary" size="sm" class="flex-1" :disabled="isSavingEdit" @click="saveEditActivity">
+              {{ isSavingEdit ? '儲存中...' : '儲存' }}
+            </UiButton>
+          </div>
+        </template>
+
+        <template v-else>
+          <div class="flex items-start justify-between gap-3">
+            <div>
+              <p class="text-sm font-medium text-gold-light">
+                {{ isOrganizer ? '這是你發起的活動' : '你正在以管理員身分管理此活動' }}
+              </p>
+              <p class="mt-1 text-xs text-titanium/50">點擊成員完成現場核銷。忘記報名的球員可以在下方手動新增。</p>
+            </div>
+            <div class="flex shrink-0 gap-2">
+              <UiButton variant="outline" size="sm" @click="startEditActivity">編輯活動</UiButton>
+              <UiButton
+                v-if="canCloseActivity"
+                variant="danger"
+                size="sm"
+                :disabled="isClosingActivity"
+                @click="askCloseActivity"
+              >
+                關閉活動
+              </UiButton>
+            </div>
+          </div>
+          <p v-if="closeError" class="text-xs text-red-400">{{ closeError }}</p>
+          <ActivityAttendeeCheckinList :activity-id="activity.id" />
+        </template>
       </div>
       <RegistrationAvatarPicker
         v-else-if="pendingAvatarIds"

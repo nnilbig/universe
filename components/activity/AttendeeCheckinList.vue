@@ -3,8 +3,12 @@ import { computed, reactive, ref } from 'vue'
 
 const props = defineProps<{ activityId: string }>()
 
-const { listByActivity, setCheckedIn, cancel } = useRegistrations()
+const { listByActivity, setCheckedIn, cancel, adminAddGuest } = useRegistrations()
 const findProfile = useProfileLookup()
+
+const newAttendeeName = ref('')
+const isAddingAttendee = ref(false)
+const addAttendeeError = ref('')
 
 // Taps stage a checked_in change locally (pendingChanges) instead of writing immediately — the
 // organizer reviews the whole batch, then 確認 submits every staged change in one go.
@@ -35,6 +39,28 @@ const attendees = computed(() =>
     }
   })
 )
+
+async function addAttendee() {
+  addAttendeeError.value = ''
+  const name = newAttendeeName.value.trim()
+  if (!name || name.length > 8) {
+    addAttendeeError.value = '請輸入 1-8 個字的暱稱'
+    return
+  }
+  if (attendees.value.some((a) => a.name === name)) {
+    addAttendeeError.value = `此場次已有叫「${name}」的球友！請重新輸入。`
+    return
+  }
+  isAddingAttendee.value = true
+  try {
+    await adminAddGuest(props.activityId, name)
+    newAttendeeName.value = ''
+  } catch (e) {
+    addAttendeeError.value = e instanceof Error ? e.message : '新增失敗，請再試一次'
+  } finally {
+    isAddingAttendee.value = false
+  }
+}
 
 function askCancel(a: { id: string; name: string; nickname?: string }) {
   cancelError.value = ''
@@ -86,6 +112,14 @@ async function submitBatch() {
       <span>現場核銷</span>
       <span>{{ checkedInCount }} / {{ attendees.length }} 已到場</span>
     </div>
+
+    <div class="flex gap-2">
+      <UiInput v-model="newAttendeeName" maxlength="8" placeholder="輸入球員暱稱，手動新增報名" class="flex-1" />
+      <UiButton type="button" size="sm" :disabled="isAddingAttendee" @click="addAttendee">
+        {{ isAddingAttendee ? '新增中...' : '新增人員' }}
+      </UiButton>
+    </div>
+    <p v-if="addAttendeeError" class="text-xs text-red-400">{{ addAttendeeError }}</p>
 
     <p v-if="!attendees.length" class="rounded-lg border border-dashed border-titanium/15 py-4 text-center text-xs text-titanium/40">
       尚無人報名

@@ -97,6 +97,14 @@ export function useRegistrations() {
     return registrations
   }
 
+  // 管理員手動新增報名人員 — unlike registerAsGuest, doesn't write a device-local guest record,
+  // since the admin adding someone isn't that guest themselves (RLS: "admins and owners create
+  // any registration", see supabase/migrations/20260820000000_role_permissions.sql).
+  async function adminAddGuest(activityId: string, nickname: string) {
+    const [registration] = await service.registerAsGuest({ activityId, members: [{ nickname }] })
+    return registration
+  }
+
   // 補充報名 — tops up an existing group with one more member (never primary).
   async function addGuestCompanion(activityId: string, groupId: string, nickname: string) {
     const registration = await service.addGuestCompanion(groupId, nickname)
@@ -138,6 +146,7 @@ export function useRegistrations() {
     myRegistrations,
     registerWithLine,
     registerAsGuest,
+    adminAddGuest,
     addGuestCompanion,
     setAvatar,
     cancel,

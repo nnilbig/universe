@@ -1,4 +1,4 @@
-import type { ActivityService, ActivityWithLookups, CreateActivityInput } from './activities.types'
+import type { ActivityService, ActivityWithLookups, CreateActivityInput, UpdateActivityInput } from './activities.types'
 import type { Activity, ActivityType, SportType } from '~/types'
 import { getSupabaseClient } from '~/lib/supabase'
 
@@ -178,6 +178,20 @@ export const activitiesServiceLive: ActivityService = {
   async updateStatus(id, status) {
     const supabase = getSupabaseClient()
     const { data, error } = await supabase.from('activities').update({ status }).eq('id', id).select('*').single()
+    if (error) throw error
+    return withLookups(data as ActivityRow)
+  },
+  async updateActivity(id, patch: UpdateActivityInput) {
+    const supabase = getSupabaseClient()
+    const updates: Record<string, unknown> = {}
+    if (patch.title !== undefined) updates.title = patch.title
+    if (patch.activityTypeId !== undefined) updates.activity_type_id = patch.activityTypeId
+    if (patch.sportTypeId !== undefined) updates.sport_type_id = patch.sportTypeId
+    if (patch.date !== undefined) updates.date = patch.date
+    if (patch.startTime !== undefined) updates.start_time = patch.startTime
+    if (patch.endTime !== undefined) updates.end_time = patch.endTime || null
+
+    const { data, error } = await supabase.from('activities').update(updates).eq('id', id).select('*').single()
     if (error) throw error
     return withLookups(data as ActivityRow)
   }
